@@ -1,5 +1,5 @@
 import html from "../lib/html.js";
-
+import randomUUID from "../util/randomUUID.js";
 /**
  * Create a new editor window.
  * @param {Object} options
@@ -17,17 +17,20 @@ export default function editorWindow({
   title = "Untitled Window",
   toolbarContent = "",
   footerContent = "",
+  content = "",
   position = "relative",
   cssOverrides = {},
   listeners = {
     onRemove: (e) => {},
   }
 }) {
+  const id = randomUUID();
+
   const el = html`
     
-    <div class="__wizzy-window">
+    <div class="__wizzy-window" id="${id}">
     <style>
-      @scope (.__wizzy-window) {
+      @scope (#${id}) {
         :scope {
           
           --background: white;
@@ -45,10 +48,33 @@ export default function editorWindow({
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            z-index: 100000006;
+            z-index: 1000000006;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
             border-style: solid;
             border-width: 1px;
+            border-color: #ccc;
+            padding: 3rem;
+          }
+
+          button {
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: inherit;
+            font-size: 1rem;
+            padding: 0.5rem;
+            margin: 0;
+            text-align: center;
+            text-decoration: none;
+            text-justify: center;
+            
+            &:hover {
+              background: rgba(0, 0, 0, 0.1);
+            }
+
+            &:active {
+              background: rgba(0, 0, 0, 0.2);
+            }
           }
           .__wizzy-window-menu {
             display: flex;
@@ -74,37 +100,6 @@ export default function editorWindow({
             margin: 0;
             overflow: auto;
           }
-
-          ${(() => {
-            if (typeof cssOverrides !== "object") {
-              throw new Error("cssOverrides must be an object");
-            }
-
-            let res = "";
-
-            for (let [selector, value] of Object.entries(cssOverrides)) {
-              
-              if (typeof value !== "string") {
-                throw new Error("cssOverrides values must be strings");
-              }
-
-              if (selector.startsWith(".container")) {
-                selector = selector.replace(/^\.container/, "&");
-              } else if (selector.startsWith(".menu")) {
-                selector = selector.replace(/^\.menu/, ".__wizzy-window-menu");
-              } else if (selector.startsWith(".toolbar")) {
-                selector = selector.replace(/^\.toolbar/, ".__wizzy-window-toolbar");
-              } else if (selector.startsWith(".content")) {
-                selector = selector.replace(/^\.content/, ".__wizzy-window-content");
-              } else if (selector.startsWith(".footer")) {
-                selector = selector.replace(/^\.footer/, ".__wizzy-window-footer");
-              }
-
-              res += `${selector} { ${value} }\n\n`;
-            }
-
-            return res;
-          })()}
         }
       }
     </style>
@@ -124,7 +119,7 @@ console.log(el);
 
   const menu = el.querySelector(".__wizzy-window-menu");
   const toolbar = el.querySelector(".__wizzy-window-toolbar");
-  const content = el.querySelector(".__wizzy-window-content");
+  const _content = el.querySelector(".__wizzy-window-content");
   const footer = el.querySelector(".__wizzy-window-footer");
 
   if (toolbarContent instanceof Array) {
@@ -169,6 +164,24 @@ console.log(el);
         - string
 
       Received: ${typeof footerContent}.
+    `);
+  }
+
+  if (content instanceof HTMLElement) {
+    _content.appendChild(content);
+  } else if (typeof content === "string") {
+    if (content.trim().length > 0) {
+      _content.insertAdjacentHTML("beforeend", content);
+    }
+  } else {
+    throw new Error(`
+      Invalid content argument provided.
+
+      Must be one of:
+        - HTMLElement
+        - string
+
+      Received: ${typeof content}.
     `);
   }
 

@@ -29,7 +29,7 @@ export function editorPreferences(localStorageTarget = "") {
   }
   
 
-  let preferences = [JSON.parse(localStorage.getItem(localStorageTarget))];
+  let preferences = JSON.parse(localStorage.getItem(localStorageTarget));
 
   console.log(preferences);
   const preferencesContainer = editorWindow({
@@ -38,9 +38,25 @@ export function editorPreferences(localStorageTarget = "") {
     toolbarContent: `
       <button class="__wizzy-preferences-save material-icons">save</button>
     `,
+
     position: "fixed",
 
     cssOverrides: {
+      
+      '.container': `
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        padding: 3rem;
+        background: white;
+        border: 1px solid #ccc;
+        z-index: 10000000002;
+        width: 100%;
+        height: 100%;
+      `,
+
       '.toolbar button': `
         font-family: 'Material Icons';
         font-size: 24px;
@@ -50,6 +66,10 @@ export function editorPreferences(localStorageTarget = "") {
         margin: 0;
         text-align: center;
         cursor: pointer;
+        border: none;
+        background: none;
+        align-items: center;
+        justify-content: center;
       `,
       '.toolbar button:hover': `
         background: rgba(0, 0, 0, 0.1);
@@ -60,6 +80,11 @@ export function editorPreferences(localStorageTarget = "") {
       '.toolbar': `
         justify-content: flex-start;
       `,
+    },
+    listeners: {
+      onRemove: () => {
+        preferencesContainer.toggle();
+      },
     }
   });
   

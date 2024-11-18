@@ -6,10 +6,10 @@ import getTools from "./tools.js";
 import editorDomPath from "./elements/editor-dompath.js";
 import quickEdit from "./elements/element-quickedit.js";
 import elementInfo from "./elements/element-info.js";
-import codeEditor from "./elements/code-editor.js";
 import contextMenu from "./elements/context-menu.js";
 import { hotbar, hotbarSlot, command, commandSearchMenu, insertHTMLSnippetCommand } from "./elements/commands.js";
 import { editorPreferences } from "./elements/editor-preferences.js";
+import editorWindow from "./elements/editor-window.js";
 
 
 new (function () {
@@ -56,11 +56,6 @@ new (function () {
     `,
     hotbar: null,
     canvasOverlay: html` <canvas class="__wizzy-canvas-overlay"></canvas> `,
-    cssEditor: html`
-      <div class="__wizzy-css-editor">
-
-      </div>
-    `,
   };
 
   this.state = state;
@@ -115,25 +110,8 @@ new (function () {
     state.editorContainer.appendChild(state.mouseFollower);
 
     initCanvasOverlay(state.canvasOverlay);
-
-    const cssEditor = state.cssEditor;
-    cssEditor.style.position = "fixed";
     
-    cssEditor.style.top = "2rem";
-    cssEditor.style.right = "2rem";
-    cssEditor.style.bottom = "2rem";
-    cssEditor.style.left = "2rem";
-
-    cssEditor.style.zIndex = "1000000003";
-    cssEditor.style.display = "flex";
-
-    const cssCodeEditor = codeEditor({
-      className: "__wizzy-css-code-editor",
-    });
-
-    cssEditor.appendChild(cssCodeEditor);
-
-    state.editorContainer.appendChild(cssEditor);
+    state.editorContainer.appendChild(state.preferences);
 
     initHotbar();
   }
@@ -468,7 +446,7 @@ new (function () {
           save();
         }
 
-        if (e.key === '+') {
+        if (e.key === 'p') {
           state.preferences.toggle();
         }
       }
@@ -480,14 +458,6 @@ new (function () {
 
         if (command) {
           command();
-        }
-      }
-
-      if (e.key === "F3") {
-        if (state.cssEditor.style.display === "none") {
-          state.cssEditor.style.display = "flex";
-        } else {
-          state.cssEditor.style.display = "none";
         }
       }
 

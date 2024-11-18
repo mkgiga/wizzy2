@@ -1,11 +1,20 @@
 import html from "../lib/html.js";
 
+/**
+ * 
+ * @param {Object} options
+ * @param {String} options.className The class name to apply to the code editor
+ * @param {Array} options.buttons Any buttons to add to this specific code editor's footer
+ * @param {String} options.savePath The path in localStorage to save the code to
+ * @returns {HTMLElement}
+ */
 export default function codeEditor({
   className = "",
   buttons = [],
+  savePath = "",
 }) {
   const el = html`
-    <div class="__wizzy-code-editor __wizzy-window ${className}">
+    <div class="__wizzy-code-editor __wizzy-window ${className}" __wizzy-save-target="${savePath}">
       <style>
         @scope (.__wizzy-code-editor) {
           :scope {
@@ -20,6 +29,9 @@ export default function codeEditor({
               margin: 0;
               padding: 0;
               z-index: 100000006;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+              border-style: solid;
+              border-width: 1px;
             }
 
             textarea {
@@ -149,6 +161,18 @@ export default function codeEditor({
       </div>
     </div>
   `;
+
+  el.save = () => {
+    const path = el.getAttribute("__wizzy-save-target");
+    const textarea = el.querySelector(".__wizzy-code-editor-textarea");
+    localStorage.setItem(path, textarea.value);
+  };
+
+  el.close = () => {
+    el.save();
+    el.remove();
+  };
+
   const textarea = el.querySelector(".__wizzy-code-editor-textarea");
 
   textarea.addEventListener("keydown", (e) => {
@@ -186,7 +210,9 @@ export default function codeEditor({
 
   saveBtn.addEventListener("click", () => {
     const localStorageTarget = "wizzy-css";
+    
     const css = textarea.value;
+
     localStorage.setItem(localStorageTarget, css);
 
     const documentCss = document.querySelector("style#__wizzy-user-css");

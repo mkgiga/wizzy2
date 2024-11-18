@@ -8,8 +8,16 @@ import quickEdit from "./elements/element-quickedit.js";
 import elementInfo from "./elements/element-info.js";
 import codeEditor from "./elements/code-editor.js";
 import contextMenu from "./elements/context-menu.js";
+import { hotbar, hotbarSlot, command, commandSearchMenu, insertHTMLSnippetCommand } from "./elements/commands.js";
+import { editorPreferences } from "./elements/editor-preferences.js";
+
 
 new (function () {
+
+  const LOCALSTORAGE_TARGET_PREFERENCES = "__wizzy-preferences";
+  const LOCALSTORAGE_TARGET_HTML = "__wizzy-html";
+  const LOCALSTORAGE_TARGET_CSS = "__wizzy-css";
+
   const editor = this;
 
   /**
@@ -27,6 +35,7 @@ new (function () {
       y: 0,
     },
 
+    preferences: editorPreferences(LOCALSTORAGE_TARGET_PREFERENCES),
     editorContainer: editorContainer(),
     mouseFollower: html`
       <span
@@ -45,6 +54,7 @@ new (function () {
       >
       </span>
     `,
+    hotbar: null,
     canvasOverlay: html` <canvas class="__wizzy-canvas-overlay"></canvas> `,
     cssEditor: html`
       <div class="__wizzy-css-editor">
@@ -124,6 +134,49 @@ new (function () {
     cssEditor.appendChild(cssCodeEditor);
 
     state.editorContainer.appendChild(cssEditor);
+
+    initHotbar();
+  }
+
+  function initHotbar() {
+    const defaultHotbarSlots = [
+      hotbarSlot({
+        key: "1",
+        command: insertHTMLSnippetCommand({
+          outerHTML: "<div>Hello, World!</div>",
+          editor
+        })
+      }),
+      hotbarSlot({
+        key: "2",
+        command: insertHTMLSnippetCommand({
+          outerHTML: "<p>Hello, World!</p>",
+          editor
+        })
+      }),
+      hotbarSlot({
+        key: "3",
+        command: insertHTMLSnippetCommand({
+          outerHTML: "<h1>Hello, World!</h1>",
+          editor
+        })
+      }),
+      hotbarSlot({
+        key: "4",
+        command: insertHTMLSnippetCommand({
+          outerHTML: "<h2>Hello, World!</h2>",
+          editor
+        })
+      }),
+    ];
+
+    const hotbarContainer = hotbar({
+      slots: defaultHotbarSlots,
+    });
+
+    state.hotbar = hotbarContainer;
+
+    state.editorContainer.appendChild(hotbarContainer);
   }
 
   /**
@@ -409,6 +462,16 @@ new (function () {
       ) {
         e.preventDefault();
       }
+      
+      if (e.ctrlKey) {
+        if (e.key === "s") {
+          save();
+        }
+
+        if (e.key === '+') {
+          state.preferences.toggle();
+        }
+      }
 
       // Hotbar commands
       if (e.key.match(/[0-9]/)) {
@@ -426,14 +489,26 @@ new (function () {
         } else {
           state.cssEditor.style.display = "none";
         }
-
       }
 
+      // Duplicate selected elements
       if (e.key === "d") {
-        tryPlaceElement(e);
+        
+        const selection = getSelection();
+
+        for (const element of selection) {
+          if (element === document.documentElement || element === document.body) {
+            console.error("You can't duplicate the body or the html element");
+            continue;
+          }
+
+          const clone = element.cloneNode(true);
+          element.parentElement.appendChild(clone);
+        }
+        
       }
 
-      // Queryselector
+      // Queryselector search bar
       if (e.key === "q") {
         promptQuerySelector(state.mouse.x, state.mouse.y);
       }
@@ -492,47 +567,92 @@ new (function () {
 
   }
 
-  function tryPlaceElement(e) {
+  function tryPlaceElements(e, elements = []) {
+
     if (e.target.closest("[__wizzy-editor]")) {
       return;
     }
 
-    const selectedTool = state.editorContainer.querySelector(
-      ".__wizzy-tool[selected]"
-    );
+    const selection = getSelection();
+    
+    if (!elements) {
+      console.error("No elements to place were provided.");
+      return;
+    }
 
-    if (selectedTool) {
-      const selection = getSelection();
+    if (selection.length === 0) {
+      console.warn("No elements selected. Nothing to place");
+      return;
+    }
+
+    if (elements instanceof Array) {
+      for (const selectedElement of selection) {
+        if (selectedElement.closest("[__wizzy-editor]")) {
+          console.error("You can't append elements to the editor. How did you even manage to select it?");
+          return;
+        }
+
+        for (const element of elements) {
+          selectedElement.appendChild(element);
+        }
+      }
+    } else if (elements instanceof Element) {
+      for (const selectedElement of selection) {
+        if (selectedElement.closest("[__wizzy-editor]")) {
+          console.error("You can't append elements to the editor. How did you even manage to select it?");
+          return;
+        }
+
+        selectedElement.appendChild(elements);
+      }
+    } else {
+      throw new Error("Invalid elements argument");
     }
   }
 
+  /**
+   * Returns all selected elements
+   * @returns {NodeListOf<Element>}
+   */
   function getSelection() {
     return document.querySelectorAll("[__wizzy-selected]");
   }
 
   function selectElement(element) {
+
     // 1. is this part of the editor?
     if (element.closest("[__wizzy-editor]")) {
       return;
     }
 
-    // 2. scripts, styles, and head elements are not selectable
+    // 2. some elements can't be selected
     if (
       element.closest("head") ||
       element.tagName === "SCRIPT" ||
-      element.tagName === "STYLE"
+      element.tagName === "STYLE" ||
+      element.tagName === "LINK" ||
+      element.tagName === "META" ||
+      element.tagName === "TITLE"
     ) {
       return;
     }
 
+    // 3. select the element
     element.setAttribute("__wizzy-selected", "");
 
+    // 4. each selected element should have an info element that shows various information an
     const elInfo = elementInfo({ targetElement: element });
+    elInfo.style.visibility = "hidden";
 
     state.editorContainer.appendChild(elInfo);
     const rect = element.getBoundingClientRect();
+
+    // 5. correct the element's position
     elInfo.setPosition(rect.left, rect.top);
     elInfo.correctPosition();
+
+    // 6. show the element's info. done
+    elInfo.style.visibility = "visible";
   }
 
   function unselectElement(element) {
@@ -713,6 +833,7 @@ new (function () {
 
   function isBlockElement(element) {
     const displayStyle = window.getComputedStyle(element).display;
+
     return (
       displayStyle === "block" ||
       displayStyle === "flex" ||
@@ -721,25 +842,63 @@ new (function () {
   }
 
   function save() {
+    const outerHtml = document.documentElement.outerHTML;
+    const css = document.head.querySelector(".__wizzy-user-style").innerHTML;
 
+    localStorage.setItem(LOCALSTORAGE_TARGET_HTML, outerHtml);
+    localStorage.setItem(LOCALSTORAGE_TARGET_CSS, css);
   }
 
   function load() {
 
-  }
+    if (!localStorage.getItem(LOCALSTORAGE_TARGET_HTML)) {
+      console.error("No saved HTML document found");
+      return;
+    }
 
-  function saveCss() {
-    const cssEditor = state.editorContainer.querySelector(".__wizzy-css-editor");
-    const css = cssEditor.querySelector("textarea").value;
+    const headElements = document.head.querySelectorAll(`
+        :not(.__wizzy-style),
+        :not(.__wizzy-user-style)
+      `);
+
+    const bodyElements = document.body.querySelectorAll(`
+        :not([__wizzy-editor]),
+      `);
+
+    for (const element of headElements) {
+      if (element === document.currentScript) {
+        continue;
+      }
+
+      element.remove();
+    }
+
+    for (const element of bodyElements) {
+      if (element === document.currentScript) {
+        continue;
+      }
+
+      element.remove();
+    }
+
+    const html = localStorage.getItem(LOCALSTORAGE_TARGET_HTML);
+
+    document.documentElement.outerHTML = html;
+
+    if (!localStorage.getItem(LOCALSTORAGE_TARGET_CSS)) {
+      console.error("No saved CSS document found");
+      return;
+    }
+
+    const css = localStorage.getItem(LOCALSTORAGE_TARGET_CSS);
     
-    localStorage.setItem("wizzy-css", css);
-  }
+    const style = document.createElement("style");
+    style.classList.add("__wizzy-user-style");
+    style.innerHTML = css;
 
-  function loadCss() {
-    const cssEditor = state.editorContainer.querySelector(".__wizzy-css-editor");
-    const css = localStorage.getItem("wizzy-css");
+    document.head.appendChild(style);
 
-    cssEditor.querySelector("textarea").value = css;
+    console.info("Loaded saved document");
   }
 
   function animate() {

@@ -1,6 +1,13 @@
+/**
+ * @file tools.js
+ * @description Contains all the tools that can be selected and used by the user.
+ */
+
 import { tool } from "./elements/toolbar.js";
 import html from "./lib/html.js";
 import { getMaterialIconFor } from "./util/element-utils.js";
+
+
 
 export default function ({ editor }) {
   const res = [

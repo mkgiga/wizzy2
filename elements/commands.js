@@ -1,4 +1,6 @@
 import html from "../lib/html.js";
+import { getMaterialIconFor } from "../util/element-utils.js";
+import contextMenu from "./context-menu.js";
 
 /**
  * Holds items that can be triggered with a keyboard shortcut.
@@ -7,7 +9,42 @@ import html from "../lib/html.js";
  * @param {Array} options.slots - Array of hotbar slots
  * @returns {HTMLElement} - The hotbar element
  */
-export function hotbar({ slots = [] }) {}
+export function hotbar({ slots = [] }) {
+
+  const el = html`
+    <div class="__wizzy-hotbar">
+      <style>
+        @scope (.__wizzy-hotbar) {
+          :scope {
+            & {
+              position: fixed;
+              display: grid;
+              grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+              grid-auto-rows: 50px;
+              gap: 0.5rem;
+              
+
+              bottom: 0.5rem;
+              left: 0.5rem;
+              width: 100%;
+              height: 50px;
+              background: transparent;
+              box-sizing: border-box;
+              margin: 0;
+              z-index: 1000000001;
+            }
+          }
+        }
+      </style>
+    </div>
+  `;
+
+  slots.forEach((slot) => {
+    el.appendChild(slot);
+  });
+
+  return el;
+}
 
 /**
  * Holds a single item that can be triggered with a keyboard shortcut.
@@ -19,6 +56,8 @@ export function hotbar({ slots = [] }) {}
 export function hotbarSlot({ command, key = "" }) {
   const el = html`
     <div class="__wizzy-hotbar-slot" key="${key}">
+      <span class="__wizzy-hotbar-slot-key"></span>
+
       <style>
         @scope (.__wizzy-hotbar-slot) {
           :scope {
@@ -32,11 +71,30 @@ export function hotbarSlot({ command, key = "" }) {
               box-sizing: border-box;
               margin: 0;
               padding: 0;
-              z-index: 100000006;
+              z-index: 1000000008;
               box-shadow: 0 0 6px 1px rgba(0, 0, 0, 0.25);
             }
 
+            .__wizzy-hotbar-slot-key {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              padding: 0.5rem;
+              text-align: center;
+              font-size: 1rem;
+              font-family: monospace;
+              color: black;
+              pointer-events: none;
+
+              ::before {
+                content: attr(key);
+              }
+            }
+
             .__wizzy-command {
+
               display: flex;
               flex-direction: column;
               justify-content: center;
@@ -51,12 +109,60 @@ export function hotbarSlot({ command, key = "" }) {
               font-size: 1rem;
               cursor: pointer;
               transition: all 0.1s cubic-bezier(0.25, 0.1, 0.25, 1);
+
+              .__wizzy-command-icon {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                height: 100%;
+                font-size: 2rem;
+                pointer-events: none;
+
+                
+                &::before {
+                  content: attr(icon);
+                }
+              }
+
+              .__wizzy-command-name {
+                display: none;
+              }
+
+              .__wizzy-command-brief {
+                display: none;
+              }
+
+              .__wizzy-command-description {
+                display: none;
+              }
+
+              .__wizzy-command:has(.__wizzy-html-preview-box) {
+                &:not(:hover) {
+                  display: none;
+                }
+
+                &:hover {
+                  display: flex;
+                }
+              }
             }
           }
         }
       </style>
     </div>
   `;
+
+  el.appendChild(command);
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === key) {
+      command.action();
+    }
+  });
+
+  return el;
 }
 
 /**
@@ -80,14 +186,18 @@ export function command({
   description = "",
   brief = "",
   action = () => {},
+  editor = null,
+  contextMenu: ctxMenu = [
+    { label: "Click me!", value: (e) => console.log(e) },
+  ]
 }) {
   const el = html`
     <span
       class="__wizzy-command"
       name="${name}"
+      icon="${icon}"
       description="${description}"
       brief="${brief}"
-      action="${action}"
     >
       <span class="__wizzy-command-icon material-icons"></span>
       <span class="__wizzy-command-name"></span>
@@ -95,6 +205,25 @@ export function command({
       <span class="__wizzy-command-description"></span>
     </span>
   `;
+
+  el.querySelector(".__wizzy-command-icon").textContent = icon;
+  el.querySelector(".__wizzy-command-name").textContent = name;
+  el.querySelector(".__wizzy-command-brief").textContent = brief;
+  el.querySelector(".__wizzy-command-description").textContent = description;
+
+  el.addEventListener("click", action.bind({ editor }));
+
+  el.addEventListener("contextmenu", (e) => {
+    const menu = contextMenu({
+      items: ctxMenu,
+      x: e.clientX,
+      y: e.clientY,
+    });
+
+    editor.state.editorContainer.appendChild(menu);
+  });
+
+  return el;
 }
 
 /**
@@ -166,4 +295,61 @@ export function commandSearchMenu({ commands = [] }) {
       <div class="__wizzy-command-search-menu-results"></div>
     </div>
   `;
+}
+
+export function insertHTMLSnippetCommand({ outerHTML = "", editor }) {
+  function htmlPreviewBox({ previewElement = document.createElement('div'), x = 0, y = 0, width = 0, height = 0 }) {
+    const previewContainer = html`
+      <div class="__wizzy-html-preview-box">
+        <style>
+          @scope (.__wizzy-html-preview-box) {
+            :scope {
+              & {
+                position: fixed;
+                display: flex;
+                flex-direction: column;
+                top: ${y}px;
+                left: ${x}px;
+                width: ${width}px;
+                height: ${height}px;
+                background: transparent;
+                border: 1px solid black;
+                z-index: 10000000007;
+              }
+            }
+          }
+        </style>
+
+        <div class="__wizzy-html-preview-box-content">
+
+        </div>
+      </div>
+    `;
+
+    return previewContainer;
+  }
+
+  const preview = html`${ outerHTML }`;
+  const outerTag = preview.tagName.toLowerCase();
+
+  const cmd = command({
+    name: "Insert HTML Snippet",
+    icon: getMaterialIconFor(outerTag),
+    description: "Inserts an HTML snippet into the editor",
+    brief: "Inserts an HTML snippet",
+    editor,
+
+    action: (e) => {
+      if (e.target && e.target instanceof HTMLElement) {
+        if (e.target.closest("[wizzy-editor]")) {
+          return;
+        }
+
+        e.target.insertAdjacentHTML("beforeend", outerHTML);
+        return;
+      }
+    },
+  });
+
+  return cmd;
 }

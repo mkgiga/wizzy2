@@ -7,13 +7,19 @@ import editorDomPath from "./elements/editor-dompath.js";
 import quickEdit from "./elements/element-quickedit.js";
 import elementInfo from "./elements/element-info.js";
 import contextMenu from "./elements/context-menu.js";
-import { hotbar, hotbarSlot, command, commandSearchMenu, insertHTMLSnippetCommand } from "./elements/commands.js";
-import { editorPreferences } from "./elements/editor-preferences.js";
 
+import {
+  hotbar,
+  hotbarSlot,
+  command,
+  commandSearchMenu,
+  insertHTMLSnippetCommand,
+} from "./elements/commands.js";
+
+import { editorPreferences } from "./elements/editor-preferences.js";
 import editorWindow from "./elements/editor-window.js";
 
 new (function () {
-
   const LOCALSTORAGE_TARGET_PREFERENCES = "__wizzy-preferences";
   const LOCALSTORAGE_TARGET_HTML = "__wizzy-html";
   const LOCALSTORAGE_TARGET_CSS = "__wizzy-css";
@@ -23,6 +29,52 @@ new (function () {
   /**
    * @exports EditorState
    */
+
+  /**
+   * A singleton class that represents the Wizzy Editor
+   */
+  class WizzyEditor {
+    static history = [];
+
+    constructor() {}
+
+    /**
+     * Initialize the editor using a provided state
+     * @param {{ do: Function, undo: Function }[]} history
+     */
+    static init(history = []) {
+      WizzyEditor.history = history;
+    }
+
+    executeCommand(path = "select.element") {
+      const arr = path.split(".");
+      let commands = WizzyEditor.commands;
+      let target = null;
+
+      for (const key of arr) {
+        target = commands[key];
+        if (target["do"]) {
+          break;
+        }
+      }
+
+      // if we found an executable command,
+      // execute it
+      if (target) {
+        target.do();
+        WizzyEditor.history.push(target);
+      }
+    }
+
+    static commands = {
+      select: {
+        element: {
+          do(e) {},
+          undo(e) {},
+        },
+      },
+    };
+  }
 
   /**
    * @typedef {typeof state} EditorState
@@ -110,7 +162,7 @@ new (function () {
     state.editorContainer.appendChild(state.mouseFollower);
 
     initCanvasOverlay(state.canvasOverlay);
-    
+
     state.editorContainer.appendChild(state.preferences);
 
     initHotbar();
@@ -122,29 +174,29 @@ new (function () {
         key: "1",
         command: insertHTMLSnippetCommand({
           outerHTML: "<div>Hello, World!</div>",
-          editor
-        })
+          editor,
+        }),
       }),
       hotbarSlot({
         key: "2",
         command: insertHTMLSnippetCommand({
           outerHTML: "<p>Hello, World!</p>",
-          editor
-        })
+          editor,
+        }),
       }),
       hotbarSlot({
         key: "3",
         command: insertHTMLSnippetCommand({
           outerHTML: "<h1>Hello, World!</h1>",
-          editor
-        })
+          editor,
+        }),
       }),
       hotbarSlot({
         key: "4",
         command: insertHTMLSnippetCommand({
           outerHTML: "<h2>Hello, World!</h2>",
-          editor
-        })
+          editor,
+        }),
       }),
     ];
 
@@ -162,7 +214,6 @@ new (function () {
    * @param {HTMLCanvasElement} overlay
    */
   function initCanvasOverlay(overlay) {
-
     overlay.width = window.innerWidth;
     overlay.height = window.innerHeight;
 
@@ -240,7 +291,6 @@ new (function () {
   }
 
   function initListeners() {
-
     function onMouseMove(e) {
       state.mouse.x = e.clientX;
       state.mouse.y = e.clientY;
@@ -310,7 +360,7 @@ new (function () {
               value: () => {
                 console.log("Test");
               },
-            }
+            },
           ],
           [
             {
@@ -330,34 +380,34 @@ new (function () {
               value: () => {
                 console.log("Test");
               },
-            }
+            },
           ],
           [
             {
-              "label": "Settings...",
-              "value": [
+              label: "Settings...",
+              value: [
                 {
-                  "label": "Font",
-                  "value": () => {
+                  label: "Font",
+                  value: () => {
                     console.log("Test");
-                  }
+                  },
                 },
                 {
-                  "label": "Theme",
-                  "value": () => {
+                  label: "Theme",
+                  value: () => {
                     console.log("Test");
-                  }
+                  },
                 },
                 {
-                  "label": "Editor",
-                  "value": () => {
+                  label: "Editor",
+                  value: () => {
                     console.log("Test");
-                  }
-                }
-              ]
-            }
-          ]
-        ]
+                  },
+                },
+              ],
+            },
+          ],
+        ],
       });
 
       test.style.position = "fixed";
@@ -423,7 +473,7 @@ new (function () {
       }
 
       const selection = getSelection();
-      
+
       for (const element of selection) {
         unselectElement(element);
       }
@@ -432,7 +482,6 @@ new (function () {
     }
 
     function onKeyDown(e) {
-      
       // Don't block the developer tools
       if (e.key === "F12") {
         return;
@@ -446,13 +495,13 @@ new (function () {
       ) {
         e.preventDefault();
       }
-      
+
       if (e.ctrlKey) {
         if (e.key === "s") {
           save();
         }
 
-        if (e.key === 'p') {
+        if (e.key === "p") {
           state.preferences.toggle();
         }
       }
@@ -469,11 +518,13 @@ new (function () {
 
       // Duplicate selected elements
       if (e.key === "d") {
-        
         const selection = getSelection();
 
         for (const element of selection) {
-          if (element === document.documentElement || element === document.body) {
+          if (
+            element === document.documentElement ||
+            element === document.body
+          ) {
             console.error("You can't duplicate the body or the html element");
             continue;
           }
@@ -481,7 +532,6 @@ new (function () {
           const clone = element.cloneNode(true);
           element.parentElement.appendChild(clone);
         }
-        
       }
 
       // Queryselector search bar
@@ -540,17 +590,15 @@ new (function () {
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("dblclick", onDblClick);
-
   }
 
   function tryPlaceElements(e, elements = []) {
-
     if (e.target.closest("[__wizzy-editor]")) {
       return;
     }
 
     const selection = getSelection();
-    
+
     if (!elements) {
       console.error("No elements to place were provided.");
       return;
@@ -564,7 +612,9 @@ new (function () {
     if (elements instanceof Array) {
       for (const selectedElement of selection) {
         if (selectedElement.closest("[__wizzy-editor]")) {
-          console.error("You can't append elements to the editor. How did you even manage to select it?");
+          console.error(
+            "You can't append elements to the editor. How did you even manage to select it?"
+          );
           return;
         }
 
@@ -575,7 +625,9 @@ new (function () {
     } else if (elements instanceof Element) {
       for (const selectedElement of selection) {
         if (selectedElement.closest("[__wizzy-editor]")) {
-          console.error("You can't append elements to the editor. How did you even manage to select it?");
+          console.error(
+            "You can't append elements to the editor. How did you even manage to select it?"
+          );
           return;
         }
 
@@ -595,7 +647,6 @@ new (function () {
   }
 
   function selectElement(element) {
-
     // 1. is this part of the editor?
     if (element.closest("[__wizzy-editor]")) {
       return;
@@ -826,7 +877,6 @@ new (function () {
   }
 
   function load() {
-
     if (!localStorage.getItem(LOCALSTORAGE_TARGET_HTML)) {
       console.error("No saved HTML document found");
       return;
@@ -867,7 +917,7 @@ new (function () {
     }
 
     const css = localStorage.getItem(LOCALSTORAGE_TARGET_CSS);
-    
+
     const style = document.createElement("style");
     style.classList.add("__wizzy-user-style");
     style.innerHTML = css;

@@ -3,8 +3,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Lato&display=swap");
 
 :root {
-  --wizzy-selected-color: #ff0000;
-  --wizzy-selected-color-secondary: #ffc400;
+  --wizzy-feedback-info: #007bff;
+  --wizzy-feedback-good: #28a745;
+  --wizzy-feedback-bad: #dc3545;
+  --wizzy-feedback-warning: #ffc107;
 }
 
 [__wizzy-editor] {
@@ -65,7 +67,7 @@
       padding-right: 0.5rem;
     }
   }
-  
+
   .__queryselector-input {
     position: fixed;
     display: block;
@@ -112,6 +114,82 @@
   :is([hidden]) {
     display: none !important;
     visibility: hidden;
+  }
+
+  .__wizzy-notifications-container {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+
+    z-index: 1000000005;
+
+    bottom: 0.5rem;
+    right: 0.5rem;
+  }
+
+  .__wizzy-notification {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+
+    .__wizzy-notification-top-bar {
+      display: flex;
+      flex-direction: row;
+
+      .__wizzy-notification-actions {
+        display: flex;
+        flex-direction: row;
+        margin-left: auto;
+
+        .material-icons {
+          text-align: center;
+          padding: 0.5rem;
+          margin: 0.25rem;
+          
+          &:hover {
+            filter: brightness(0.8);
+          }
+
+          &:active {
+            filter: brightness(0.6);
+          }
+        }
+
+        .__wizzy-copy-button {
+          font-size: 1.5rem;
+          font-weight: 700;
+        }
+
+        .__wizzy-close-button {
+          font-size: 1.5rem;
+          font-weight: 700;
+        }
+
+      }
+      .__wizzy-notification-title {
+        text-align: left;
+        text-justify: auto;
+        font-size: 1.5rem;
+        font-weight: 700;
+      }
+    }
+    .__wizzy-notification-message {
+      font-size: 1rem;
+
+      user-select: none;
+    }
+
+    .__wizzy-notification-type-icon {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      padding: 0.5rem;
+
+      user-select: none;
+    }
   }
 }
 

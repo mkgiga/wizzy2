@@ -478,16 +478,17 @@ new (function () {
         if (e.code === "KeyP") {
           state.preferences.toggle();
         }
-        
+
         return;
       }
 
+      // CTRL+ commands
       if (e.ctrlKey) {
         if (e.key === "s") {
           save();
         }
 
-        
+        return;
       }
 
       // Duplicate selected elements

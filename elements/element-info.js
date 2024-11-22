@@ -2,6 +2,7 @@ import html from "../lib/html.js";
 import { getMaterialIconFor } from "../util/element-utils.js";
 
 export default function elementInfo({ targetElement }) {
+  
   const target = targetElement;
   const materialIconName = getMaterialIconFor(target.tagName);
 
@@ -296,6 +297,7 @@ export default function elementInfo({ targetElement }) {
   }
 
   el.correctPosition = () => {
+
     // Make sure the element is always visible on the screen,
     // But also not covering the target element.
     // It should anchor to one of the corners of the target element,

@@ -450,12 +450,20 @@ new (function () {
       selectElement(parent);
     }
 
+    /**
+     * Handles keyboard events when the user presses a key
+     * @param {KeyboardEvent} e 
+     * @returns 
+     */
     function onKeyDown(e) {
+
       // Don't block the developer tools
       if (e.key === "F12") {
         return;
       }
 
+      // Don't block default behavior when the user is interacting with an input
+      // Or the editor itself
       if (
         !(
           document.activeElement.closest("[__wizzy-editor]") &&
@@ -465,14 +473,21 @@ new (function () {
         e.preventDefault();
       }
 
+      // CTRL+SHIFT commands
+      if (e.ctrlKey && e.shiftKey) {
+        if (e.code === "KeyP") {
+          state.preferences.toggle();
+        }
+        
+        return;
+      }
+
       if (e.ctrlKey) {
         if (e.key === "s") {
           save();
         }
 
-        if (e.key === "p") {
-          state.preferences.toggle();
-        }
+        
       }
 
       // Duplicate selected elements

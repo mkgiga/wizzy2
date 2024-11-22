@@ -27,8 +27,10 @@
   /* set default styles in case the user's page styles general elements */
   * {
     font-family: Lato, sans-serif;
+  }
 
-
+  textarea {
+    resize: none;
   }
 
   .__wizzy-window {

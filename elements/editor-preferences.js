@@ -41,46 +41,6 @@ export function editorPreferences(localStorageTarget = "") {
 
     position: "fixed",
 
-    cssOverrides: {
-      
-      '.container': `
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        right: 0;
-        padding: 3rem;
-        background: white;
-        border: 1px solid #ccc;
-        z-index: 10000000002;
-        width: 100%;
-        height: 100%;
-      `,
-
-      '.toolbar button': `
-        font-family: 'Material Icons';
-        font-size: 24px;
-        width: 24px;
-        height: 24px;
-        padding: 0;
-        margin: 0;
-        text-align: center;
-        cursor: pointer;
-        border: none;
-        background: none;
-        align-items: center;
-        justify-content: center;
-      `,
-      '.toolbar button:hover': `
-        background: rgba(0, 0, 0, 0.1);
-      `,
-      '.toolbar button:active': `
-        background: rgba(0, 0, 0, 0.2);
-      `,
-      '.toolbar': `
-        justify-content: flex-start;
-      `,
-    },
     listeners: {
       onRemove: () => {
         preferencesContainer.toggle();
@@ -92,7 +52,18 @@ export function editorPreferences(localStorageTarget = "") {
   
   const content = html`
     <div class="__wizzy-preferences-content"></div>
-    
+      <style>
+        @scope (.__wizzy-preferences-content) {
+          :scope {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            gap: 1rem;
+            width: 100%;
+            height: 100%;
+          }
+        }
+      </style>
     </div>
   `;
 
@@ -133,13 +104,23 @@ export function editorPreferences(localStorageTarget = "") {
       switch(item.type) {
         case 'textarea': 
           res = html`
-            <div class="__wizzy-preferences-item">
+            <div class="__wizzy-preferences-item" style="display: flex; flex-direction: column; max-height: 200px;">
               <label for="${item.name}">${item.name}</label>
               <div class="__wizzy-preferences-item-value">
                 <textarea id="${item.name}" name="${item.name}">${item.value}</textarea>
               </div>
             </div>
           `;
+
+          const MAX_ROWS = 8;
+
+          const textArea = res.querySelector("textarea");
+          res.updateSize = () => {
+            const rows = textArea.value.split("\n").length;
+            textArea.rows = Math.min(rows, MAX_ROWS);
+          }
+          res.updateSize();
+          textArea.addEventListener("input", res.updateSize);
           break;
 
         default:
@@ -167,6 +148,38 @@ export function editorPreferences(localStorageTarget = "") {
       preferencesContainer.style.display = "none";
     }
   }
+
+  const saveButton = preferencesContainer.querySelector(".__wizzy-preferences-save");
+
+  saveButton.addEventListener("click", (e) => {
+    e.target.animate([
+      { color: "lime", transform: "scale(2)" },
+      { color: "black", transform: "scale(1)" }
+    ], {
+      duration: 500,
+      easing: "cubic-bezier(0.175, 0.885, 0.32, 1.275)"
+    });
+
+    const groups = contentContainer.querySelectorAll(".__wizzy-preferences-group");
+
+    const newPreferences = [];
+
+    for (const group of groups) {
+      const groupName = group.querySelector("h4").textContent;
+      const items = group.querySelectorAll(".__wizzy-preferences-item");
+
+      const newItems = [];
+
+      for (const item of items) {
+        const name = item.querySelector("label").textContent;
+        const value = item.querySelector("textarea")?.value || item.querySelector("span").textContent;
+
+        newItems.push({ name, value });
+      }
+
+      newPreferences.push({ group: groupName, items: newItems });
+    }
+  });
 
   return preferencesContainer;
 }

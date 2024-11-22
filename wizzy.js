@@ -9,8 +9,8 @@ import elementInfo from "./elements/element-info.js";
 import contextMenu from "./elements/context-menu.js";
 import { hotbar, hotbarSlot, command, commandSearchMenu, insertHTMLSnippetCommand } from "./elements/commands.js";
 import { editorPreferences } from "./elements/editor-preferences.js";
-import editorWindow from "./elements/editor-window.js";
 
+import editorWindow from "./elements/editor-window.js";
 
 new (function () {
 
@@ -432,6 +432,12 @@ new (function () {
     }
 
     function onKeyDown(e) {
+      
+      // Don't block the developer tools
+      if (e.key === "F12") {
+        return;
+      }
+
       if (
         !(
           document.activeElement.closest("[__wizzy-editor]") &&

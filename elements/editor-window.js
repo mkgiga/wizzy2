@@ -42,21 +42,25 @@ export default function editorWindow({
             position: ${position};
             display: flex;
             flex-direction: column;
-            width: 100%;
-            height: 100%;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
             background: var(--background);
             box-sizing: border-box;
-            margin: 0;
+            margin: 3rem;
             padding: 0;
             z-index: 1000000006;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
             border-style: solid;
             border-width: 1px;
             border-color: #ccc;
-            padding: 3rem;
+
           }
 
           button {
+            font-family: 'Material Icons';
+            font-size: 24px;
             cursor: pointer;
             border: none;
             background: none;

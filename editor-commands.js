@@ -2,10 +2,12 @@
  * @abstract
  * Represents a command that can be executed by the editor.
  * Should have a reverse operation that can be executed to undo the command.
+ * 
  */
 export class EditorCommand {
-  constructor(editor) {
+  constructor({ editor, params = {} }) {
     this.editor = editor;
+    this.params = params;
   }
 
   get history() {

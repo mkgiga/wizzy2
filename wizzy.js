@@ -7,6 +7,7 @@ import editorDomPath from "./elements/editor-dompath.js";
 import quickEdit from "./elements/element-quickedit.js";
 import elementInfo from "./elements/element-info.js";
 import contextMenu from "./elements/context-menu.js";
+import { EditorCommand } from "./editor-commands.js";
 
 import {
   hotbar,
@@ -19,22 +20,26 @@ import {
 import { editorPreferences } from "./elements/editor-preferences.js";
 import editorWindow from "./elements/editor-window.js";
 
+/**
+ * using new() with an IIFE to allow for a private stateful object instance
+ */
 new (function () {
   const LOCALSTORAGE_TARGET_PREFERENCES = "__wizzy-preferences";
   const LOCALSTORAGE_TARGET_HTML = "__wizzy-html";
   const LOCALSTORAGE_TARGET_CSS = "__wizzy-css";
 
   const editor = this;
+  
 
-  const editorCommands = {
-    
-  }
 
   /**
    * @typedef {typeof state} EditorState
    */
   const state = {
-    commands: [],
+    history: {
+      commands: [],
+      index: 0,
+    }
 
     mouse: {
       x: 0,
@@ -460,16 +465,6 @@ new (function () {
         }
       }
 
-      // Hotbar commands
-      if (e.key.match(/[0-9]/)) {
-        const index = parseInt(e.key, 10) - 1;
-        const command = state.commands[index];
-
-        if (command) {
-          command();
-        }
-      }
-
       // Duplicate selected elements
       if (e.key === "d") {
         const selection = getSelection();
@@ -545,6 +540,76 @@ new (function () {
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("dblclick", onDblClick);
   }
+
+  /**
+   * Editor commands which may be executed or undone
+   */
+  const editorCommands = {
+    
+  }
+
+  function executeCommand(path = "select.element", params = {}) {
+    const arr = path.split(".");
+    
+    if (arr.length === 0) {
+      console.error("Invalid command path");
+      return;
+    }
+
+    let target = editorCommands;
+
+    for (const key of arr) {
+      const res = target[key];
+
+      if (!res) {
+        console.error("Invalid command path");
+        return;
+      }
+
+      target = res;
+
+      if (Object.getPrototypeOf(target) === EditorCommand) {
+        const newCommand = new target({ editor, params });
+
+        newCommand.do();
+        
+        // remove future commands from the history
+        state.history.commands.splice(state.history.index + 1);
+        state.history.index = state.history.commands.push(newCommand) - 1;
+        
+        return newCommand;
+      }
+    }
+  }
+
+  function undo() {
+    if (state.history.index < 0) {
+      return;
+    }
+
+    const command = state.history.commands[state.history.index];
+
+    command.undo();
+
+    state.history.index--;
+
+    return command;
+  }
+
+  function redo() {
+    if (state.history.index >= state.history.commands.length - 1) {
+      return;
+    }
+
+    const command = state.history.commands[state.history.index + 1];
+
+    command.do();
+
+    state.history.index++;
+
+    return command;
+  }
+
 
   function tryPlaceElements(e, elements = []) {
     if (e.target.closest("[__wizzy-editor]")) {

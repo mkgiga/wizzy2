@@ -39,7 +39,7 @@ There are few tools available that succeed in providing a fast and intuitive way
   npm run build
   ```
 
-6. Load dist/wizzy2.build.js inside a web page using your favorite method, such as a simple `<script>` tag, or a browser extension like Tampermonkey if you want to use it on any page.
+5. Load dist/wizzy2.build.js inside a web page using your favorite method, such as a simple `<script>` tag, or a browser extension like Tampermonkey if you want to use it on any page.
 
 ### 2. Usage
 (Coming soon)

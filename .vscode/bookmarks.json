@@ -4,12 +4,12 @@
 			"path": "wizzy.js",
 			"bookmarks": [
 				{
-					"line": 92,
+					"line": 90,
 					"column": 0,
 					"label": "Initialize: Elements"
 				},
 				{
-					"line": 188,
+					"line": 186,
 					"column": 0,
 					"label": "Animate Overlay"
 				}

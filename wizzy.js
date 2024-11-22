@@ -1,14 +1,17 @@
 import html from "./lib/html.js";
-import editorContainer from "./elements/editor-container.js";
-import { tools, tool } from "./elements/toolbar.js";
-import { tabMenu } from "./elements/tab-menu.js";
 import getTools from "./tools.js";
-import editorDomPath from "./elements/editor-dompath.js";
-import quickEdit from "./elements/element-quickedit.js";
-import elementInfo from "./elements/element-info.js";
-import contextMenu from "./elements/context-menu.js";
 import { EditorCommand } from "./editor-commands.js";
 
+// Functions that create complex elements
+import contextMenu from "./elements/context-menu.js";
+import editorDomPath from "./elements/editor-dompath.js";
+import quickEdit from "./elements/element-quickedit.js";
+import editorContainer from "./elements/editor-container.js";
+import elementInfo from "./elements/element-info.js";
+import editorWindow from "./elements/editor-window.js";
+import { tabMenu } from "./elements/tab-menu.js";
+import { tools, tool } from "./elements/toolbar.js";
+import { editorPreferences } from "./elements/editor-preferences.js";
 import {
   hotbar,
   hotbarSlot,
@@ -16,9 +19,6 @@ import {
   commandSearchMenu,
   insertHTMLSnippetCommand,
 } from "./elements/commands.js";
-
-import { editorPreferences } from "./elements/editor-preferences.js";
-import editorWindow from "./elements/editor-window.js";
 
 /**
  * using new() with an IIFE to allow for a private stateful object instance
@@ -29,8 +29,6 @@ new (function () {
   const LOCALSTORAGE_TARGET_CSS = "__wizzy-css";
 
   const editor = this;
-  
-
 
   /**
    * @typedef {typeof state} EditorState
@@ -39,7 +37,7 @@ new (function () {
     history: {
       commands: [],
       index: 0,
-    }
+    },
 
     mouse: {
       x: 0,
@@ -544,13 +542,11 @@ new (function () {
   /**
    * Editor commands which may be executed or undone
    */
-  const editorCommands = {
-    
-  }
+  const editorCommands = {};
 
   function executeCommand(path = "select.element", params = {}) {
     const arr = path.split(".");
-    
+
     if (arr.length === 0) {
       console.error("Invalid command path");
       return;
@@ -572,11 +568,11 @@ new (function () {
         const newCommand = new target({ editor, params });
 
         newCommand.do();
-        
+
         // remove future commands from the history
         state.history.commands.splice(state.history.index + 1);
         state.history.index = state.history.commands.push(newCommand) - 1;
-        
+
         return newCommand;
       }
     }
@@ -609,7 +605,6 @@ new (function () {
 
     return command;
   }
-
 
   function tryPlaceElements(e, elements = []) {
     if (e.target.closest("[__wizzy-editor]")) {
@@ -715,7 +710,7 @@ new (function () {
 
   /**
    * Returns the user tool of the given id
-   * @param {string} id - The id of the tool to get 
+   * @param {string} id - The id of the tool to get
    * @returns {HTMLElement} The tool element
    */
   function getTool(id = "div") {
@@ -724,8 +719,8 @@ new (function () {
 
   /**
    * Prompts the user to enter a querySelector string
-   * @param {number} x 
-   * @param {number} y 
+   * @param {number} x
+   * @param {number} y
    */
   function promptQuerySelector(x, y) {
     const el = html`<input

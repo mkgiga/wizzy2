@@ -1,5 +1,5 @@
 import html from "../lib/html.js";
-import { getMaterialIconFor } from "../src/util/element-utils.js";
+import { getMaterialIconFor } from "../util/element-utils.js";
 
 export default function elementInfo({ targetElement }) {
   const target = targetElement;

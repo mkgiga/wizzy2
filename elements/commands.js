@@ -1,6 +1,6 @@
 import html from "../lib/html.js";
 import { getMaterialIconFor } from "../util/element-utils.js";
-import contextMenu from "./context-menu.js";
+import contextMenu from "./contextmenu.js";
 
 /**
  * Holds items that can be triggered with a keyboard shortcut.

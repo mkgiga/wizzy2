@@ -1,10 +1,109 @@
+/**
+ * @fileoverview A straightforward context menu implementation that even your grandmother could use.
+ * @module contextmenu
+ * @version 1.0.0
+ * @license MIT
+ * @example
+ * ```js
+ * import contextMenu from "./contextmenu.js";
+ *
+ * const menu = contextMenu({
+ *   items: [
+ *     { label: "Copy", value: () => console.log("Copy clicked") },
+ *     { label: "Cut", value: () => console.log("Cut clicked") },
+ *     { label: "Paste", value: () => console.log("Paste clicked") },
+ *     {
+ *       label: "Settings...",
+ *       value: [
+ *         { label: "Font", value: () => console.log("Font clicked") },
+ *         { label: "Theme", value: () => console.log("Theme clicked") }
+ *       ]
+ *     }
+ *   ],
+ *   x: 100,
+ *   y: 100
+ * });
+ *
+ * document.body.appendChild(menu);
+ * ```
+ */
 
-export default function contextMenu({ items = [], x = 0, y = 0, cssOverrides = {
-  menu: "",
-  item: "",
-  group: ""
-} }) {
-  
+/**
+ * @typedef ContextMenuItem
+ * 
+ * @property {string} label
+ * The text to display in the menu item
+ * 
+ * @property {Function | ContextMenu} value
+ * Either a function to call when the item is clicked, or an array of items to display in a submenu of the same structure
+ * 
+ * @property {boolean} [disabled]
+ * If the item is disabled, it will not be clickable, but will still be rendered as a menu item
+ */
+
+/**
+ * @typedef ContextMenuOptions
+ * 
+ * @property {ContextMenuItem[]} items
+ * The items to display in the context menu
+ * 
+ * @property {number} x
+ * The x coordinate of the menu
+ * 
+ * @property {number} y
+ * The y coordinate of the menu
+ * 
+ * @property {Object} cssOverrides
+ * An object containing CSS overrides for the menu and its items
+ * 
+ * @property {string} cssOverrides.menu
+ * CSS to override the menu container
+ * 
+ * @property {string} cssOverrides.item
+ * CSS to override the menu items
+ * 
+ * @property {string} cssOverrides.group
+ * CSS to override the menu groups
+ */
+
+/**
+ * A straightforward context menu element that can be spawned anywhere on the page viewport.
+ * @example
+ * ```js
+ * import contextMenu from "./contextmenu.js";
+ *
+ * const menu = contextMenu({
+ *   items: [
+ *     { label: "Copy", value: () => console.log("Copy clicked") },
+ *     { label: "Cut", value: () => console.log("Cut clicked") },
+ *     { label: "Paste", value: () => console.log("Paste clicked") },
+ *     {
+ *       label: "Settings...",
+ *       value: [
+ *         { label: "Font", value: () => console.log("Font clicked") },
+ *         { label: "Theme", value: () => console.log("Theme clicked") }
+ *       ]
+ *     }
+ *   ],
+ *   x: 100,
+ *   y: 100
+ * });
+ *
+ * document.body.appendChild(menu);
+ * ```
+ * @returns {HTMLElement}
+ */
+
+export default function contextMenu({
+  items = [],
+  x = 0,
+  y = 0,
+  cssOverrides = {
+    menu: "",
+    item: "",
+    group: "",
+  },
+}) {
   const MINIMUM_WIDTH = 256;
   const ITEM_HEIGHT = 24;
 
@@ -23,7 +122,6 @@ export default function contextMenu({ items = [], x = 0, y = 0, cssOverrides = {
     return template.content.firstElementChild;
   }
 
-
   /**
    * Call this recursively for each submenu (including the top level)
    * @param {Object} options
@@ -31,7 +129,6 @@ export default function contextMenu({ items = [], x = 0, y = 0, cssOverrides = {
    * @param {Array} items - The items to display in the menu
    */
   function createMenu({ parent = null, items = [], x = 0, y = 0 }) {
-    
     let bounds;
 
     if (parent) {
@@ -87,7 +184,7 @@ export default function contextMenu({ items = [], x = 0, y = 0, cssOverrides = {
               }
 
               .__context-menu-item {
-                
+
                 position: relative;
                 display: flex;
                 flex-direction: row;
@@ -102,7 +199,7 @@ export default function contextMenu({ items = [], x = 0, y = 0, cssOverrides = {
                 user-select: none;
 
                 /* preventing the text from triggering the event listeners */
-                
+
                 .__context-menu-item-label {
                   pointer-events: none;
                   user-select: none;
@@ -112,7 +209,7 @@ export default function contextMenu({ items = [], x = 0, y = 0, cssOverrides = {
                   pointer-events: none;
                   user-select: none;
                 }
-              
+
                 &[disabled] {
                   .__context-menu-item-label {
                     opacity: 0.5;
@@ -146,11 +243,10 @@ export default function contextMenu({ items = [], x = 0, y = 0, cssOverrides = {
     `;
 
     if (!parent) {
-
       menuElement.setAttribute("role", "menu");
       menuElement.setAttribute("__context-menu-root", "");
 
-      window.addEventListener("click", (e) => {  
+      window.addEventListener("click", (e) => {
         if (!e.target.closest(".__context-menu")) {
           menuElement.remove();
         }
@@ -168,7 +264,6 @@ export default function contextMenu({ items = [], x = 0, y = 0, cssOverrides = {
   }
 
   function createMenuItem({ parentMenu, label, value, disabled }) {
-
     const itemElement = html`
       <div class="__context-menu-item" ${disabled ? "disabled" : ""}>
         <span class="__context-menu-item-label">${label}</span>
@@ -184,15 +279,15 @@ export default function contextMenu({ items = [], x = 0, y = 0, cssOverrides = {
         }
 
         value(e);
-      
+
         const rootElement = itemElement.closest("[__context-menu-root]");
-        rootElement.remove();  
+        rootElement.remove();
       });
-
     } else if (Array.isArray(value)) {
-
       const submenuIndicator = html`
-        <span class="__context-menu-submenu-icon material-icons">chevron_right</span>
+        <span class="__context-menu-submenu-icon material-icons"
+          >chevron_right</span
+        >
       `;
 
       itemElement.appendChild(submenuIndicator);
@@ -200,7 +295,7 @@ export default function contextMenu({ items = [], x = 0, y = 0, cssOverrides = {
       function open(e) {
         createMenu({
           parent: itemElement,
-          items: value
+          items: value,
         });
       }
 
@@ -216,11 +311,7 @@ export default function contextMenu({ items = [], x = 0, y = 0, cssOverrides = {
   }
 
   function createMenuGroup({ parentMenu, items = [] }) {
-    const groupElement = html`
-      <div class="__context-menu-group">
-        
-      </div>
-    `;
+    const groupElement = html` <div class="__context-menu-group"></div> `;
 
     for (const item of items) {
       if (Array.isArray(item)) {

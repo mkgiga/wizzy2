@@ -1,9 +1,21 @@
+/**
+ * @fileoverview
+ * 
+ * wizzy2.js - A front-end power tool for web developers designed to make
+ * rapidly iterating on web pages less painful and more fun.
+ * 
+ * @version 2.0.0
+ * @license MIT
+ * @author mkgiga
+ * @see {@link "https://github.com/mkgiga/wizzy2"} for the source code repository
+ */
+
 import html from "./lib/html.js";
 import getTools from "./tools.js";
 import { EditorCommand } from "./editor-commands.js";
 
 // Functions that create complex elements
-import contextMenu from "./elements/context-menu.js";
+import contextMenu from "./elements/contextmenu.js";
 import editorDomPath from "./elements/editor-dompath.js";
 import quickEdit from "./elements/element-quickedit.js";
 import editorContainer from "./elements/editor-container.js";

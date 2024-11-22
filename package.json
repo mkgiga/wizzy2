@@ -3,16 +3,27 @@
   "version": "1.0.0",
   "description": "A visual power tool for rapid development of HTML/CSS user interfaces.",
   "main": "editor-commands.js",
+  
   "directories": {
-    "lib": "lib"
+    "lib": "lib",
+    "elements": "elements",
+    "editorCommands": "editor-commands",
+    "util": "util"
   },
+  
   "scripts": {
     "build": "webpack --mode=development"
   },
+
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
+
   "devDependencies": {
-    "webpack": "^5.96.1"
+    "webpack": "^5.74.0",
+    "@babel/core": "^7.18.13",
+    "@babel/preset-env": "^7.18.10",
+    "babel-loader": "^8.2.5",
+    "webpack-cli": "^4.10.0"
   }
 }

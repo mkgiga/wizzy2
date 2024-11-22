@@ -27,10 +27,6 @@ new (function () {
   const editor = this;
 
   /**
-   * @exports EditorState
-   */
-
-  /**
    * A singleton class that represents the Wizzy Editor
    */
   class WizzyEditor {
@@ -694,10 +690,20 @@ new (function () {
     }
   }
 
+  /**
+   * Returns the user tool of the given id
+   * @param {string} id - The id of the tool to get 
+   * @returns {HTMLElement} The tool element
+   */
   function getTool(id = "div") {
-    return document.querySelector(`#__wizzy-tool-${id}`);
+    return state.editorContainer.querySelector(`#__wizzy-tool-${id}`);
   }
 
+  /**
+   * Prompts the user to enter a querySelector string
+   * @param {number} x 
+   * @param {number} y 
+   */
   function promptQuerySelector(x, y) {
     const el = html`<input
       type="text"
@@ -716,6 +722,7 @@ new (function () {
           console.error(
             "You can't select elements that are part of the editor"
           );
+
           el.remove();
           return;
         }
@@ -723,7 +730,7 @@ new (function () {
         let elements = [];
 
         try {
-          elements = document.querySelectorAll(selector);
+          elements = document.querySelectorAll(selector.trim());
 
           // remove elements that are part of the editor
           elements = Array.from(elements).filter(

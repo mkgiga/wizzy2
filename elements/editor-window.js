@@ -1,5 +1,5 @@
 import html from "../lib/html.js";
-import randomUUID from "../util/randomUUID.js";
+import randomUUID from "../src/util/randomUUID.js";
 /**
  * Create a new editor window.
  * @param {Object} options

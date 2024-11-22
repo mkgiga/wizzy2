@@ -54,7 +54,7 @@ Now load `dist/wizzy2.build.js` inside a web page using your favorite method, su
 
 - *Where can I find the source code?*
 
-  Right here, dummy. Look at the top of the page.
+  Right here dummy 😄 Look at the top of the page!
 
 - *Can I use this project in my own project?*
 

@@ -7,8 +7,6 @@ import { tool } from "./elements/toolbar.js";
 import html from "./lib/html.js";
 import { getMaterialIconFor } from "./util/element-utils.js";
 
-
-
 export default function ({ editor }) {
   const res = [
     tool({

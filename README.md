@@ -22,39 +22,42 @@ There are few tools available that succeed in providing a fast and intuitive way
 ## Usage and Installation
 
 ### 1. Installation
-1. 
   ```
   git clone https://github.com/mkgiga/wizzy2.git
   ```
-2. 
+
   ```
   cd wizzy2
   ```
-3. 
+
   ```
   npm install
   ```
-4. 
+  
   ```
   npm run build
   ```
 
-5. Load dist/wizzy2.build.js inside a web page using your favorite method, such as a simple `<script>` tag, or a browser extension like Tampermonkey if you want to use it on any page.
+Now load dist/wizzy2.build.js inside a web page using your favorite method, such as a simple `<script>` tag, or a browser extension like Tampermonkey if you want to use it on any page.
 
 ### 2. Usage
 (Coming soon)
 
 ## FAQ (Frequently Asked Questions)
 - *What happened to wizzy 1?*
+
   The first iteration of wizzy was a simple project that I never released publicly. It ended up being more of a proof of concept, which I scrapped so I could start fresh with a new codebase
 
 - *Why is this project called wizzy?*
+
   The name "wizzy" is a portmanteau of "wizard", "busy" and the long acronym "WYSIWYG" which stands for "What You See Is What You Get", which refers to any editor that shows the user the end-result of their work as they are working on it, such as Microsoft Word or Adobe Photoshop.
 
 - *Where can I find the source code?*
+
   Right here, dummy. Look at the top of the page.
 
 - *Can I use this project in my own project?*
+
   Yes! This project is licensed under the [MIT License](#license), which means you can use it in your own projects, commercial or otherwise, as long as you include the license with your project. It's not required, but I would be very happy if you included a link to this project in your project's acknowledgements or credits.
 
 ## License

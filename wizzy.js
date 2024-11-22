@@ -26,50 +26,8 @@ new (function () {
 
   const editor = this;
 
-  /**
-   * A singleton class that represents the Wizzy Editor
-   */
-  class WizzyEditor {
-    static history = [];
-
-    constructor() {}
-
-    /**
-     * Initialize the editor using a provided state
-     * @param {{ do: Function, undo: Function }[]} history
-     */
-    static init(history = []) {
-      WizzyEditor.history = history;
-    }
-
-    executeCommand(path = "select.element") {
-      const arr = path.split(".");
-      let commands = WizzyEditor.commands;
-      let target = null;
-
-      for (const key of arr) {
-        target = commands[key];
-        if (target["do"]) {
-          break;
-        }
-      }
-
-      // if we found an executable command,
-      // execute it
-      if (target) {
-        target.do();
-        WizzyEditor.history.push(target);
-      }
-    }
-
-    static commands = {
-      select: {
-        element: {
-          do(e) {},
-          undo(e) {},
-        },
-      },
-    };
+  const editorCommands = {
+    
   }
 
   /**

@@ -2,7 +2,6 @@ import html from "../lib/html.js";
 import editorWindow from "./editor-window.js";
 
 export function editorPreferences(localStorageTarget = "") {
-  
   const defaultPreferences = [
     {
       group: "Elements",
@@ -10,10 +9,9 @@ export function editorPreferences(localStorageTarget = "") {
         {
           name: "Prevent appending inside:",
           type: "textarea",
-          value:
-            `p,\nh1,\nh2,\nh3,\nh4,\nh5,\nh6,\nimg,\nbutton,\nlabel,\ninput,\ntextarea,\nembed`,
+          value: `p,\nh1,\nh2,\nh3,\nh4,\nh5,\nh6,\nimg,\nbutton,\nlabel,\ninput,\ntextarea,\nembed`,
         },
-      ]
+      ],
     },
   ];
 
@@ -27,14 +25,13 @@ export function editorPreferences(localStorageTarget = "") {
       JSON.stringify(defaultPreferences)
     );
   }
-  
 
   let preferences = JSON.parse(localStorage.getItem(localStorageTarget));
 
   console.log(preferences);
   const preferencesContainer = editorWindow({
     title: "Preferences",
-    
+
     toolbarContent: `
       <button class="__wizzy-preferences-save material-icons">save</button>
     `,
@@ -45,11 +42,13 @@ export function editorPreferences(localStorageTarget = "") {
       onRemove: () => {
         preferencesContainer.toggle();
       },
-    }
+    },
   });
-  
-  const contentContainer = preferencesContainer.querySelector(".__wizzy-window-content");
-  
+
+  const contentContainer = preferencesContainer.querySelector(
+    ".__wizzy-window-content"
+  );
+
   const content = html`
     <div class="__wizzy-preferences-content"></div>
       <style>
@@ -68,7 +67,6 @@ export function editorPreferences(localStorageTarget = "") {
   `;
 
   for (const group of preferences) {
-
     const groupContainer = html`
       <div class="__wizzy-preferences-group">
         <style>
@@ -91,23 +89,30 @@ export function editorPreferences(localStorageTarget = "") {
           }
         </style>
         <h4>${group.group}</h4>
-        <hr>
+        <hr />
         <div class="__wizzy-preferences-group-items"></div>
       </div>
     `;
 
-    const itemsContainer = groupContainer.querySelector(".__wizzy-preferences-group-items");
+    const itemsContainer = groupContainer.querySelector(
+      ".__wizzy-preferences-group-items"
+    );
     console.log(group.items);
     for (const item of group.items) {
       let res;
 
-      switch(item.type) {
-        case 'textarea': 
+      switch (item.type) {
+        case "textarea":
           res = html`
-            <div class="__wizzy-preferences-item" style="display: flex; flex-direction: column; max-height: 200px;">
+            <div
+              class="__wizzy-preferences-item"
+              style="display: flex; flex-direction: column; max-height: 200px;"
+            >
               <label for="${item.name}">${item.name}</label>
               <div class="__wizzy-preferences-item-value">
-                <textarea id="${item.name}" name="${item.name}">${item.value}</textarea>
+                <textarea id="${item.name}" name="${item.name}">
+${item.value}</textarea
+                >
               </div>
             </div>
           `;
@@ -118,7 +123,7 @@ export function editorPreferences(localStorageTarget = "") {
           res.updateSize = () => {
             const rows = textArea.value.split("\n").length;
             textArea.rows = Math.min(rows, MAX_ROWS);
-          }
+          };
           res.updateSize();
           textArea.addEventListener("input", res.updateSize);
           break;
@@ -141,26 +146,41 @@ export function editorPreferences(localStorageTarget = "") {
     contentContainer.appendChild(groupContainer);
   }
 
-  preferencesContainer.toggle = () => {
-    if (preferencesContainer.style.display === "none") {
-      preferencesContainer.style.display = "flex";
+  /**
+   * Toggle the preferences container.
+   * @param {boolean} [state=undefined] - The state to set the preferences container to. If not provided, the container will set to the opposite of its current state.
+   */
+  preferencesContainer.toggle = (state = undefined) => {
+    if (state !== undefined) {
+      preferencesContainer.style.display = state ? "flex" : "none";
     } else {
-      preferencesContainer.style.display = "none";
+      if (preferencesContainer.style.display === "none") {
+        preferencesContainer.style.display = "flex";
+      } else {
+        preferencesContainer.style.display = "none";
+      }
     }
-  }
+  };
 
-  const saveButton = preferencesContainer.querySelector(".__wizzy-preferences-save");
+  const saveButton = preferencesContainer.querySelector(
+    ".__wizzy-preferences-save"
+  );
 
   saveButton.addEventListener("click", (e) => {
-    e.target.animate([
-      { color: "lime", transform: "scale(2)" },
-      { color: "black", transform: "scale(1)" }
-    ], {
-      duration: 500,
-      easing: "cubic-bezier(0.175, 0.885, 0.32, 1.275)"
-    });
+    e.target.animate(
+      [
+        { color: "lime", transform: "scale(2)" },
+        { color: "black", transform: "scale(1)" },
+      ],
+      {
+        duration: 500,
+        easing: "cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+      }
+    );
 
-    const groups = contentContainer.querySelectorAll(".__wizzy-preferences-group");
+    const groups = contentContainer.querySelectorAll(
+      ".__wizzy-preferences-group"
+    );
 
     const newPreferences = [];
 
@@ -172,7 +192,9 @@ export function editorPreferences(localStorageTarget = "") {
 
       for (const item of items) {
         const name = item.querySelector("label").textContent;
-        const value = item.querySelector("textarea")?.value || item.querySelector("span").textContent;
+        const value =
+          item.querySelector("textarea")?.value ||
+          item.querySelector("span").textContent;
 
         newItems.push({ name, value });
       }

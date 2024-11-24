@@ -1,9 +1,9 @@
 /**
  * @fileoverview
- * 
+ *
  * wizzy2.js - A front-end power tool for web developers designed to make
  * rapidly iterating on web pages less painful and more fun.
- * 
+ *
  * @version 2.0.0
  * @license MIT
  * @author mkgiga
@@ -31,6 +31,7 @@ import {
   commandSearchMenu,
   insertHTMLSnippetCommand,
 } from "./elements/commands.js";
+import quickStyles from "./elements/element-quickstyles.js";
 
 /**
  * using new() with an IIFE to allow for a private stateful object instance
@@ -51,6 +52,8 @@ new (function () {
       index: 0,
     },
 
+    chord: [],
+
     mouse: {
       x: 0,
       y: 0,
@@ -58,6 +61,8 @@ new (function () {
 
     preferences: editorPreferences(LOCALSTORAGE_TARGET_PREFERENCES),
     editorContainer: editorContainer(),
+    notifications: html` <div class="__wizzy-notifications"></div> `,
+
     mouseFollower: html`
       <span
         class="__wizzy-current-tool-mouse-follower material-icons"
@@ -132,6 +137,7 @@ new (function () {
 
     initCanvasOverlay(state.canvasOverlay);
 
+    state.preferences.toggle();
     state.editorContainer.appendChild(state.preferences);
 
     initHotbar();
@@ -176,6 +182,7 @@ new (function () {
     state.hotbar = hotbarContainer;
 
     state.editorContainer.appendChild(hotbarContainer);
+    state.editorContainer.appendChild(state.notifications);
   }
 
   /**
@@ -452,11 +459,10 @@ new (function () {
 
     /**
      * Handles keyboard events when the user presses a key
-     * @param {KeyboardEvent} e 
-     * @returns 
+     * @param {KeyboardEvent} e
+     * @returns
      */
     function onKeyDown(e) {
-
       // Don't block the developer tools
       if (e.key === "F12") {
         return;
@@ -507,6 +513,59 @@ new (function () {
           const clone = element.cloneNode(true);
           element.parentElement.appendChild(clone);
         }
+      }
+
+      /**
+       * @type {NodeListOf<Element>}
+       */
+      const selection = getSelection();
+
+      const chords = {
+        t: {
+          // text-align
+          a: {
+            ArrowLeft: () => {
+              for (const element of selection) {
+                element.style.textAlign = "left";
+              }
+            },
+          },
+          // text-justify
+          j: {
+            ArrowLeft: () => {
+              for (const element of selection) {
+                element.style.textJustify = "left";
+              }
+            },
+          },
+          // text-decoration
+          d: {},
+        },
+        f: {
+          // font-weight
+          w: {},
+          // font-style
+          s: {},
+          // font-size
+          z: {},
+        },
+      };
+
+      // Chord keys
+      if (editor.state.chord.length > 0) {
+        for (let i = 0; i < editor.state.chord.length; i++) {
+          const key = editor.state.chord[i];
+
+          if (chords[key]) {
+            chords = chords[key];
+          } else {
+            editor.state.chord = [];
+            return;
+          }
+        }
+      } else {
+        const base = chords[e.key];
+        onChord(base);
       }
 
       // Queryselector search bar
@@ -686,6 +745,171 @@ new (function () {
    */
   function getSelection() {
     return document.querySelectorAll("[__wizzy-selected]");
+  }
+
+  // temporary internal selection array to allow for the querying methods to return the dictionary root and still
+  // remember the selected elements of the previous query
+  let tempSelection = getSelection();
+
+  /**
+   * Quick way to modify or work with selected elements
+   */
+  const selection = {
+    forEach: {
+      style: (property, value) => {
+        selectionSetStyle(property, value);
+      },
+      attr: (attribute, value) => {
+        selectionSetAttribute(attribute, value);
+      },
+      /**
+       * Remove specific child elements from every selected element
+       */
+      remove: {
+        /**
+         * Remove these specific elements (using an arraylike list of elements)
+         */
+        these: (...elements) => {
+          for (const element of tempSelection) {
+            for (const el of elements) {
+              if (element === el) {
+                element.remove();
+              }
+            }
+          }
+
+          return {
+            then: {
+              ...selection,
+            },
+          };
+        },
+
+        /**
+         * Remove elements that match the querySelector of the current element
+         * @param {string} querySelector
+         */
+        all: (querySelector) => {
+          const newSelection = document.querySelectorAll(querySelector);
+
+          for (const element of tempSelection) {
+            for (const el of newSelection) {
+              if (element === el) {
+                element.remove();
+              }
+            }
+          }
+
+          return {
+            then: {
+              ...selection,
+            },
+          };
+        },
+      },
+    },
+
+    with: (querySelector) => {
+      const newSelection = document.querySelectorAll(querySelector);
+      const intersection = Array.from(newSelection).filter((el) =>
+        Array.from(tempSelection).includes(el)
+      );
+
+      tempSelection = intersection;
+
+      return selection;
+    },
+    add: {
+      elements: (...elements) => {
+        for (const element of elements) {
+          element.setAttribute("__wizzy-selected", "");
+        }
+
+        tempSelection = getSelection();
+      },
+      query: (querySelector) => {
+        const newSelection = document.querySelectorAll(querySelector);
+
+        for (const element of newSelection) {
+          element.setAttribute("__wizzy-selected", "");
+        }
+
+        tempSelection = getSelection();
+      },
+    },
+    remove: {
+      elements: (...elements) => {
+        for (const element of elements) {
+          element.removeAttribute("__wizzy-selected");
+        }
+
+        tempSelection = getSelection();
+
+        return selection;
+      },
+      query: (querySelector) => {
+        const newSelection = document.querySelectorAll(querySelector);
+
+        for (const element of newSelection) {
+          element.removeAttribute("__wizzy-selected");
+        }
+
+        tempSelection = getSelection();
+
+        return selection;
+      },
+    },
+    empty: () => {
+      for (const element of tempSelection) {
+        element.removeAttribute("__wizzy-selected");
+      }
+
+      tempSelection = getSelection();
+
+      return selection;
+    },
+    replaceWith: (element) => {
+      for (const selected of tempSelection) {
+        selected.replaceWith(element);
+      }
+
+      tempSelection = getSelection();
+
+      return selection;
+    },
+  };
+
+  /**
+   *
+   * @param {{property: string, value: string}} options
+   */
+  function selectionSetStyle(property, value, selection = tempSelection) {
+    if (!property) {
+      console.error("No property provided");
+      return;
+    }
+
+    for (const element of selection) {
+      // set the css text of the element (attribute)
+      let cssText = element.getAttribute("style") || "";
+
+      // remove the property if it already exists
+      cssText = cssText.replace(new RegExp(`${property}: [^;]+;`), "");
+
+      // add the new property and value
+      cssText += ` ${property}: ${value};`;
+    }
+  }
+
+  function selectionSetAttribute(attribute, value, selection = tempSelection) {
+    if (!attribute) {
+      console.error("No attribute provided");
+      return;
+    }
+
+    for (const element of selection) {
+      element.setAttribute(attribute, value);
+    }
   }
 
   function selectElement(element) {
@@ -918,6 +1142,16 @@ new (function () {
       displayStyle === "block" ||
       displayStyle === "flex" ||
       displayStyle === "grid"
+    );
+  }
+
+  function animateElementUpdate(element = document.body) {
+    element.animate(
+      [{ opacity: 0 }, { opacity: 1 }, { opacity: 0 }, { opacity: 1 }],
+      {
+        duration: 50,
+        iterations: 2,
+      }
     );
   }
 

@@ -30,38 +30,38 @@
 
 /**
  * @typedef ContextMenuItem
- * 
+ *
  * @property {string} label
  * The text to display in the menu item
- * 
+ *
  * @property {Function | ContextMenu} value
  * Either a function to call when the item is clicked, or an array of items to display in a submenu of the same structure
- * 
+ *
  * @property {boolean} [disabled]
  * If the item is disabled, it will not be clickable, but will still be rendered as a menu item
  */
 
 /**
  * @typedef ContextMenuOptions
- * 
+ *
  * @property {ContextMenuItem[]} items
  * The items to display in the context menu
- * 
+ *
  * @property {number} x
  * The x coordinate of the menu
- * 
+ *
  * @property {number} y
  * The y coordinate of the menu
- * 
+ *
  * @property {Object} cssOverrides
  * An object containing CSS overrides for the menu and its items
- * 
+ *
  * @property {string} cssOverrides.menu
  * CSS to override the menu container
- * 
+ *
  * @property {string} cssOverrides.item
  * CSS to override the menu items
- * 
+ *
  * @property {string} cssOverrides.group
  * CSS to override the menu groups
  */
@@ -299,9 +299,19 @@ export default function contextMenu({
         });
       }
 
-      itemElement.addEventListener("click", open);
+      let tmr = null;
+
+      itemElement.addEventListener("click", (e) => {
+        open(e);
+
+        if (tmr) {
+          clearTimeout(tmr);
+        }
+      });
+
       itemElement.addEventListener("mouseenter", () => {
-        const tmr = setTimeout(open, 500);
+        tmr = setTimeout(open, 500);
+
         itemElement.addEventListener("mouseleave", () => {
           clearTimeout(tmr);
         });

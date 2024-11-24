@@ -1,5 +1,5 @@
 import html from "../lib/html.js";
-export function quickStyles({ element }) {
+export default function quickStyles({ element }) {
   const el = html`
     <div class="__wizzy-quickstyles">
       <style>
@@ -42,7 +42,9 @@ export function quickStyles({ element }) {
         <span class="material-icons">search</span>
         <span class="material-icons">style</span>
         <h4>Quick Styles</h4>
-        <button class="material-icons __wizzy-quickstyles-expand">chevron_up</button>
+        <button class="material-icons __wizzy-quickstyles-expand">
+          chevron_up
+        </button>
       </div>
 
       <div class="__wizzy-quickstyles-content" collapsed>
@@ -51,12 +53,15 @@ export function quickStyles({ element }) {
             <span class="material-icons">format_align_left</span>
             <h5>Alignments</h5>
 
-            <button class="material-icons __wizzy-quickstyles-row-expand">chevron_up</button>
+            <button class="material-icons __wizzy-quickstyles-row-expand">
+              chevron_up
+            </button>
           </header>
 
-          <div class="__wizzy-quickstyles-row-content __wizzy-quickstyles-alignments-content" collapsed>
-
-          </div>
+          <div
+            class="__wizzy-quickstyles-row-content __wizzy-quickstyles-alignments-content"
+            collapsed
+          ></div>
         </div>
 
         <div class="__wizzy-quickstyles-row __wizzy-quickstyles-dimensions">
@@ -65,9 +70,10 @@ export function quickStyles({ element }) {
             <h5>Dimensions</h5>
           </header>
 
-          <div class="__wizzy-quickstyles-row-content __wizzy-quickstyles-dimensions-content" collapsed>
-
-          </div>
+          <div
+            class="__wizzy-quickstyles-row-content __wizzy-quickstyles-dimensions-content"
+            collapsed
+          ></div>
         </div>
 
         <div class="__wizzy-quickstyles-row __wizzy-quickstyles-spacing">
@@ -76,9 +82,10 @@ export function quickStyles({ element }) {
             <h5>Spacing</h5>
           </header>
 
-          <div class="__wizzy-quickstyles-row-content __wizzy-quickstyles-spacing-content" collapsed>
-
-          </div>
+          <div
+            class="__wizzy-quickstyles-row-content __wizzy-quickstyles-spacing-content"
+            collapsed
+          ></div>
         </div>
 
         <div class="__wizzy-quickstyles-row __wizzy-quickstyles-typography">
@@ -87,9 +94,10 @@ export function quickStyles({ element }) {
             <h5>Typography</h5>
           </header>
 
-          <div class="__wizzy-quickstyles-row-content __wizzy-quickstyles-typography-content" collapsed>
-          
-          </div>
+          <div
+            class="__wizzy-quickstyles-row-content __wizzy-quickstyles-typography-content"
+            collapsed
+          ></div>
         </div>
 
         <div class="__wizzy-quickstyles-row __wizzy-quickstyles-border">
@@ -98,9 +106,10 @@ export function quickStyles({ element }) {
             <h5>Border</h5>
           </header>
 
-          <div class="__wizzy-quickstyles-row-content __wizzy-quickstyles-border-content" collapsed>
-
-          </div>
+          <div
+            class="__wizzy-quickstyles-row-content __wizzy-quickstyles-border-content"
+            collapsed
+          ></div>
         </div>
       </div>
     </div>
@@ -116,4 +125,3 @@ export function quickStyles({ element }) {
     }
   });
 }
-

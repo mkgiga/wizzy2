@@ -1,5 +1,6 @@
 import html from "../lib/html.js";
 import randomUUID from "../util/randomUUID.js";
+
 /**
  * Create a new editor window.
  * @param {Object} options
@@ -22,91 +23,87 @@ export default function editorWindow({
   cssOverrides = {},
   listeners = {
     onRemove: (e) => {},
-  }
+  },
 }) {
   const id = randomUUID();
-
   const el = html`
-    
     <div class="__wizzy-window" id="${id}">
-    <style>
-      @scope (#${id}) {
-        :scope {
-          
-          --background: white;
-          --text-color: black;
+      <style>
+        @scope (#${id}) {
+          :scope {
+            --background: white;
+            --text-color: black;
 
-          color: var(--text-color);
+            color: var(--text-color);
 
-          & {
-            position: ${position};
-            display: flex;
-            flex-direction: column;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--background);
-            box-sizing: border-box;
-            margin: 3rem;
-            padding: 0;
-            z-index: 1000000006;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            border-style: solid;
-            border-width: 1px;
-            border-color: #ccc;
-
-          }
-
-          button {
-            font-family: 'Material Icons';
-            font-size: 24px;
-            cursor: pointer;
-            border: none;
-            background: none;
-            color: inherit;
-            font-size: 1rem;
-            padding: 0.5rem;
-            margin: 0;
-            text-align: center;
-            text-decoration: none;
-            text-justify: center;
-            
-            &:hover {
-              background: rgba(0, 0, 0, 0.1);
+            & {
+              position: ${position};
+              display: flex;
+              flex-direction: column;
+              top: 0;
+              bottom: 0;
+              left: 0;
+              right: 0;
+              background: var(--background);
+              box-sizing: border-box;
+              margin: 3rem;
+              padding: 0;
+              z-index: 1000000006;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+              border-style: solid;
+              border-width: 1px;
+              border-color: #ccc;
             }
 
-            &:active {
-              background: rgba(0, 0, 0, 0.2);
+            button {
+              font-family: "Material Icons";
+              font-size: 24px;
+              cursor: pointer;
+              border: none;
+              background: none;
+              color: inherit;
+              font-size: 1rem;
+              padding: 0.5rem;
+              margin: 0;
+              text-align: center;
+              text-decoration: none;
+              text-justify: center;
+
+              &:hover {
+                background: rgba(0, 0, 0, 0.1);
+              }
+
+              &:active {
+                background: rgba(0, 0, 0, 0.2);
+              }
             }
-          }
-          .__wizzy-window-menu {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem;
-            background: #f1f1f1;
-            border-bottom: 1px solid #ccc;
-          }
-          .__wizzy-window-toolbar {
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.5rem;
-            background: #f1f1f1;
-            border-bottom: 1px solid #ccc;
-          }
-          .__wizzy-window-content {
-            flex: 1;
-            padding: 0;
-            margin: 0;
-            overflow: auto;
+            .__wizzy-window-menu {
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+              align-items: center;
+              padding: 0.5rem;
+              background: #f1f1f1;
+              border-bottom: 1px solid #ccc;
+            }
+            .__wizzy-window-toolbar {
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+              align-items: center;
+              padding: 0.5rem;
+              background: #f1f1f1;
+              border-bottom: 1px solid #ccc;
+            }
+            .__wizzy-window-content {
+              flex: 1;
+              padding: 0;
+              margin: 0;
+              overflow: auto;
+            }
           }
         }
-      }
-    </style>
+      </style>
       <div class="__wizzy-window-menu">
         <h4>${title}</h4>
         <div class="__wizzy-window-menu-buttons">
@@ -119,7 +116,7 @@ export default function editorWindow({
     </div>
   `;
 
-console.log(el);
+  console.log(el);
 
   const menu = el.querySelector(".__wizzy-window-menu");
   const toolbar = el.querySelector(".__wizzy-window-toolbar");

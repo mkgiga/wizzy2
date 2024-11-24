@@ -32,6 +32,7 @@ import {
   insertHTMLSnippetCommand,
 } from "./elements/commands.js";
 import quickStyles from "./elements/element-quickstyles.js";
+import { addChord, chordContainer } from "./elements/editor-chords.js";
 
 /**
  * using new() with an IIFE to allow for a private stateful object instance
@@ -43,6 +44,25 @@ new (function () {
 
   const editor = this;
 
+  const CssLengthUnit = {
+    PX: "px",
+    EM: "em",
+    REM: "rem",
+    PERCENT: "%",
+    VW: "vw",
+    VH: "vh",
+    CM: "cm",
+    MM: "mm",
+    IN: "in",
+    PT: "pt",
+    PC: "pc",
+  };
+
+  const CssTimeUnit = {
+    Second: "s",
+    Millisecond: "ms",
+  };
+
   /**
    * @typedef {typeof state} EditorState
    */
@@ -52,7 +72,153 @@ new (function () {
       index: 0,
     },
 
+    /**
+     * @type {{
+     *   [key: string]: {
+     *     unit: string,
+     *     step: number,
+     *   }
+     * }}
+     * @description Settings for editing CSS properties, remembering user preferences for each type of property
+     */
+    cssSettings: {
+      length: {
+        unit: CssLengthUnit.PX,
+        step: 1,
+      },
+
+      time: {
+        unit: "s",
+        step: 0.1,
+      },
+
+      weight: {
+        unit: "",
+        step: 100,
+      },
+    },
+
     chord: [],
+
+    chords: {
+      t: {
+        // text-align
+        a: {
+          text: "Text Align",
+
+          ArrowLeft: () => {
+            selection.set.style("text-align", "left");
+          },
+          ArrowRight: () => {
+            selection.set.style("text-align", "right");
+          },
+          ArrowUp: () => {
+            selection.set.style("text-align", "center");
+          },
+          ArrowDown: () => {
+            selection.set.style("text-align", "justify");
+          },
+        },
+
+        // text-justify
+        j: {
+          text: "Text Justify",
+          ArrowLeft: () => {
+            selection.set.style("text-justify", "left");
+          },
+          ArrowRight: () => {
+            selection.set.style("text-justify", "right");
+          },
+          ArrowUp: () => {
+            selection.set.style("text-justify", "center");
+          },
+          ArrowDown: () => {},
+        },
+
+        // text-decoration
+        d: {
+          text: "Text Decoration",
+          key: "text-decoration",
+          allowMultiple: true,
+
+          b: "bold",
+          i: "italic",
+          u: "underline",
+          l: "line-through",
+          o: "overline",
+          s: {},
+        },
+      },
+      p: {
+        // padding
+        text: "Padding",
+
+        ArrowUp: {
+          text: "Padding Top",
+
+          ArrowUp: () => {
+            selection.set.style(
+              "padding-top",
+              `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+            );
+
+            return `Increase top-side padding by ${state.cssSettings.length.step}${state.cssSettings.length.unit}.`;
+          },
+          ArrowDown: () => {
+            selection.set.style(
+              "padding-top",
+              `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+            );
+
+            return `Decrease top-side padding by ${state.cssSettings.length.step}${state.cssSettings.length.unit}.`;
+          },
+        },
+      },
+
+      f: {
+        // font-weight
+        text: "Font Weight",
+        w: {
+          text: "Font Weight",
+          ArrowUp: () => {
+            let { unit, step } = state.cssSettings.weight;
+            step = Math.abs(step);
+
+            for (const element of getSelection()) {
+              const computedStyle = window.getComputedStyle(element);
+              const fontWeight = parseInt(computedStyle.fontWeight);
+
+              elementSetInlineStyle(
+                element,
+                "font-weight",
+                `${fontWeight + step}`
+              );
+            }
+          },
+          ArrowDown: () => {
+            let { unit, step } = state.cssSettings.weight;
+            step = Math.abs(step);
+
+            for (const element of getSelection()) {
+              const computedStyle = window.getComputedStyle(element);
+              const fontWeight = parseInt(computedStyle.fontWeight);
+
+              elementSetInlineStyle(
+                element,
+                "font-weight",
+                `${Math.max(100, fontWeight - step)}`
+              );
+            }
+          },
+        },
+        // font-style
+        s: {},
+        // font-size
+        z: {
+          ArrowUp: () => {},
+        },
+      },
+    },
 
     mouse: {
       x: 0,
@@ -62,6 +228,7 @@ new (function () {
     preferences: editorPreferences(LOCALSTORAGE_TARGET_PREFERENCES),
     editorContainer: editorContainer(),
     notifications: html` <div class="__wizzy-notifications"></div> `,
+    chordContainer: null,
 
     mouseFollower: html`
       <span
@@ -141,6 +308,8 @@ new (function () {
     state.editorContainer.appendChild(state.preferences);
 
     initHotbar();
+
+    state.chordContainer = chordContainer({ options: state.chords });
   }
 
   function initHotbar() {
@@ -515,57 +684,36 @@ new (function () {
         }
       }
 
-      /**
-       * @type {NodeListOf<Element>}
-       */
-      const selection = getSelection();
+      //
+      //  .-|
+      //    |_  Chords
+      //    |_)
+      //
 
-      const chords = {
-        t: {
-          // text-align
-          a: {
-            ArrowLeft: () => {
-              for (const element of selection) {
-                element.style.textAlign = "left";
-              }
-            },
-          },
-          // text-justify
-          j: {
-            ArrowLeft: () => {
-              for (const element of selection) {
-                element.style.textJustify = "left";
-              }
-            },
-          },
-          // text-decoration
-          d: {},
-        },
-        f: {
-          // font-weight
-          w: {},
-          // font-style
-          s: {},
-          // font-size
-          z: {},
-        },
-      };
+      // these are meta keys which should not be considered as part of the chord,
+      // rather they determine its behavior
+      const notChordDictKeys = ["allowMultiple", "text", "key"];
 
-      // Chord keys
-      if (editor.state.chord.length > 0) {
-        for (let i = 0; i < editor.state.chord.length; i++) {
-          const key = editor.state.chord[i];
+      let chordKeys = Object.keys(getCurrentChordBranch()).filter(
+        (key) => !notChordDictKeys.includes(key)
+      );
 
-          if (chords[key]) {
-            chords = chords[key];
-          } else {
-            editor.state.chord = [];
-            return;
-          }
+      const currentBranch = getCurrentChordBranch();
+      let valueMultiselection = [];
+
+      if (chordKeys.includes(e.key.toLowerCase())) {
+        // If the current branch contains a key that matches the key pressed,
+        let target = currentBranch[e.key.toLowerCase()];
+
+        if (target) {
+        } else {
+          // not found, reset the chord
+          editor.state.chord = [];
         }
-      } else {
-        const base = chords[e.key];
-        onChord(base);
+      } else if (currentBranch.allowMultiple) {
+        if (e.shiftKey) {
+          valueMultiselection.push(target);
+        }
       }
 
       // Queryselector search bar
@@ -665,6 +813,38 @@ new (function () {
     }
   }
 
+  function getCurrentChordBranch() {
+    let chord = editor.state.chord;
+    let target = editor.state.chords;
+
+    for (const key of chord) {
+      target = target[key];
+    }
+
+    return target;
+  }
+
+  function isPromptingChord() {
+    return editor.state.chord.length > 0;
+  }
+
+  function onChord() {
+    const currentBranch = getCurrentChordBranch();
+
+    if (editor.state.chord.length === 0) {
+      const chordStreak = editor.state.chordContainer.querySelector(
+        ".__wizzy-current-chords-branches"
+      );
+
+      chordStreak.innerHTML = "";
+
+      addChord({ options: currentBranch });
+      return;
+    }
+
+    addChord({ options: currentBranch });
+  }
+
   function undo() {
     if (state.history.index < 0) {
       return;
@@ -755,13 +935,19 @@ new (function () {
    * Quick way to modify or work with selected elements
    */
   const selection = {
-    forEach: {
+    /** Resets the internal selection array */
+    reset: () => {
+      tempSelection = getSelection();
+    },
+
+    set: {
       style: (property, value) => {
-        selectionSetStyle(property, value);
+        selectionSetInlineStyle(property, value);
       },
       attr: (attribute, value) => {
         selectionSetAttribute(attribute, value);
       },
+
       /**
        * Remove specific child elements from every selected element
        */
@@ -789,15 +975,14 @@ new (function () {
          * Remove elements that match the querySelector of the current element
          * @param {string} querySelector
          */
-        all: (querySelector) => {
+        if: (querySelector = "*") => {
           const newSelection = document.querySelectorAll(querySelector);
+          const intersection = Array.from(newSelection).filter((el) =>
+            Array.from(tempSelection).includes(el)
+          );
 
-          for (const element of tempSelection) {
-            for (const el of newSelection) {
-              if (element === el) {
-                element.remove();
-              }
-            }
+          for (const element of intersection) {
+            element.remove();
           }
 
           return {
@@ -809,7 +994,7 @@ new (function () {
       },
     },
 
-    with: (querySelector) => {
+    filter: (querySelector) => {
       const newSelection = document.querySelectorAll(querySelector);
       const intersection = Array.from(newSelection).filter((el) =>
         Array.from(tempSelection).includes(el)
@@ -877,27 +1062,40 @@ new (function () {
 
       return selection;
     },
+    animate: (keyframes, options) => {
+      for (const element of tempSelection) {
+        element.animate(keyframes, options);
+      }
+
+      return selection;
+    },
   };
+
+  function elementSetInlineStyle(target, property, value) {
+    // set the css text of the element (attribute)
+    let cssText = target.getAttribute("style") || "";
+
+    // remove the property if it already exists
+    cssText = cssText.replace(new RegExp(`${property}: [^;]+;`), "");
+
+    // add the new property and value
+    cssText += ` ${property}: ${value};`;
+
+    animateElementUpdate(target);
+  }
 
   /**
    *
    * @param {{property: string, value: string}} options
    */
-  function selectionSetStyle(property, value, selection = tempSelection) {
+  function selectionSetInlineStyle(property, value, selection = tempSelection) {
     if (!property) {
       console.error("No property provided");
       return;
     }
 
     for (const element of selection) {
-      // set the css text of the element (attribute)
-      let cssText = element.getAttribute("style") || "";
-
-      // remove the property if it already exists
-      cssText = cssText.replace(new RegExp(`${property}: [^;]+;`), "");
-
-      // add the new property and value
-      cssText += ` ${property}: ${value};`;
+      elementSetInlineStyle(element, property, value);
     }
   }
 
@@ -909,6 +1107,8 @@ new (function () {
 
     for (const element of selection) {
       element.setAttribute(attribute, value);
+
+      animateElementUpdate(element);
     }
   }
 

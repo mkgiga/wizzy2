@@ -147,8 +147,6 @@
     background-color: #fff;
     box-shadow: 0 0 0.5rem rgba(0, 0, 0, 0.5);
     border-radius: 0.25rem;
-    
-
 
     .__wizzy-notification-top-bar {
       display: flex;
@@ -182,7 +180,6 @@
           font-size: 1.5rem;
           font-weight: 700;
         }
-
       }
       .__wizzy-notification-title {
         text-align: left;

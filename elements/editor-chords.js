@@ -13,7 +13,43 @@ function createChordBranchContainer(options = {}) {
       </div>
       <div class="__wizzy-chord-branch-options"></div>
 
-      <style></style>
+      <style>
+        @scope (.__wizzy-chord-branch-container) {
+          :scope {
+            & {
+              display: flex;
+              flex-direction: column;
+              margin: 0;
+              padding: 0.5rem;
+              min-width: 200px;
+              max-width: 100%;
+              min-height: 24px;
+              background: #f1f1f1;
+              border: none;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+              border-radius: 0.25rem;
+              transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            }
+
+            &:not(:has(.__wizzy-chord-option)) {
+              display: none;
+            }
+
+            .__wizzy-chord-branch-header {
+              padding: 0.5rem;
+              color: #333;
+            }
+
+            .__wizzy-chord-branch-options {
+              display: flex;
+              flex-direction: column;
+              padding: 0.5rem;
+              background: #f1f1f1;
+              border-bottom: 1px solid #ccc;
+            }
+          }
+        }
+      </style>
     </div>
   `;
 
@@ -87,6 +123,24 @@ export function chordContainer({ options = {} }) {
       <style>
         @scope (.__wizzy-current-chords) {
           :scope {
+            & {
+              display: flex;
+              flex-direction: column;
+              margin: 0;
+              padding: 0;
+              min-width: 200px;
+              max-width: 100%;
+              min-height: 24px;
+              background: transparent;
+              border: none;
+
+              transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            }
+
+            &:not(:has(.__wizzy-chord-option)) {
+              display: none;
+            }
+
             .__wizzy-current-chords-header {
               padding: 0.5rem;
               background: #f1f1f1;

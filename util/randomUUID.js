@@ -1,5 +1,6 @@
-export default function randomUUID(length = 8) {
-  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+export default function randomUUID(length = 16) {
+  const chars =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let res = "";
 
   for (let i = 0; i < length; i++) {
@@ -8,4 +9,3 @@ export default function randomUUID(length = 8) {
 
   return res;
 }
-

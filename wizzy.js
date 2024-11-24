@@ -63,14 +63,44 @@ new (function () {
     Millisecond: "ms",
   };
 
+  const defaultPreferences = [
+    {
+      group: "Elements",
+      items: [
+        {
+          name: "Prevent appending inside:",
+          type: "textarea",
+          value: `p,\nh1,\nh2,\nh3,\nh4,\nh5,\nh6,\nimg,\nbutton,\nlabel,\ninput,\ntextarea,\nembed`,
+        },
+      ],
+    },
+
+    {
+      group: "Selection",
+      items: [
+        {
+          name: "Auto-select duplicated elements",
+          type: "checkbox",
+          value: false,
+        },
+      ],
+    },
+  ];
+
   /**
-   * @typedef {typeof state} EditorState
+   * @exports WizzyEditor
+   * @typedef {typeof state} WizzyEditor - The editor state
    */
   const state = {
     history: {
       commands: [],
       index: 0,
     },
+
+    /**
+     * This is where deleted elements live until the history no longer needs them
+     */
+    shadowRealm: document.createElement("div"),
 
     /**
      * @type {{
@@ -225,7 +255,11 @@ new (function () {
       y: 0,
     },
 
-    preferences: editorPreferences(LOCALSTORAGE_TARGET_PREFERENCES),
+    preferences: defaultPreferences,
+    preferencesElement: editorPreferences(
+      LOCALSTORAGE_TARGET_PREFERENCES,
+      defaultPreferences
+    ),
     editorContainer: editorContainer(),
     notifications: html` <div class="__wizzy-notifications"></div> `,
     chordContainer: null,
@@ -254,11 +288,21 @@ new (function () {
   this.state = state;
 
   function main() {
+    initPreferences();
     initStyle();
     initElements();
     initListeners();
 
     state.editorContainer.watch();
+  }
+
+  function initPreferences() {
+    // testing
+    localStorage.removeItem(LOCALSTORAGE_TARGET_PREFERENCES);
+
+    const loaded = loadPreferences();
+
+    state.preferences = loaded;
   }
 
   function initStyle() {
@@ -304,8 +348,8 @@ new (function () {
 
     initCanvasOverlay(state.canvasOverlay);
 
-    state.preferences.toggle();
-    state.editorContainer.appendChild(state.preferences);
+    state.preferencesElement.toggle();
+    state.editorContainer.appendChild(state.preferencesElement);
 
     initHotbar();
 
@@ -646,12 +690,14 @@ new (function () {
         )
       ) {
         e.preventDefault();
+      } else {
+        e.stopPropagation();
       }
 
       // CTRL+SHIFT commands
       if (e.ctrlKey && e.shiftKey) {
         if (e.code === "KeyP") {
-          state.preferences.toggle();
+          state.preferencesElement.toggle();
         }
 
         return;
@@ -680,7 +726,19 @@ new (function () {
           }
 
           const clone = element.cloneNode(true);
-          element.parentElement.appendChild(clone);
+          const newChild = element.parentElement.appendChild(clone);
+
+          if (state.preferences.find((item) => item.group === "Selection")) {
+            const autoSelect = state.preferences.find(
+              (item) => item.name === "Auto-select duplicated elements"
+            );
+
+            if (autoSelect) {
+              newChild.setAttribute("__wizzy-selected", "");
+            } else {
+              newChild.removeAttribute("__wizzy-selected");
+            }
+          }
         }
       }
 
@@ -699,20 +757,43 @@ new (function () {
       );
 
       const currentBranch = getCurrentChordBranch();
-      let valueMultiselection = [];
+      let valueMultiSelection = [];
 
-      if (chordKeys.includes(e.key.toLowerCase())) {
+      if (e.key === "Backspace" && chordKeys.length > 0) {
+        let newChord = editor.state.chord.slice(0, -1);
+        editor.state.chord = newChord;
+      } else if (chordKeys.includes(e.key.toLowerCase())) {
         // If the current branch contains a key that matches the key pressed,
         let target = currentBranch[e.key.toLowerCase()];
 
         if (target) {
+          if (typeof target === "object") {
+            const allowMultiple = target.allowMultiple || false;
+
+            if (allowMultiple) {
+              let propKey = target.key; // the actual CSS property key
+
+              if (!propKey) {
+                throw new Error(
+                  "No key provided. \
+                  \nA chord that supports adding multiple values must have a `key` property, which should be a valid CSS property key."
+                );
+              }
+
+              if (e.shiftKey) {
+                valueMultiSelection.push(target[e.key.toLowerCase()]);
+                selectionSetInlineStyle(propKey, valueMultiSelection.join(" "));
+              } else {
+                valueMultiSelection = [target[e.key.toLowerCase()]];
+                selectionSetInlineStyle(propKey, valueMultiSelection.join(" "));
+                return;
+              }
+            }
+          } else if (typeof target === "function") {
+            const res = target();
+          }
         } else {
-          // not found, reset the chord
-          editor.state.chord = [];
-        }
-      } else if (currentBranch.allowMultiple) {
-        if (e.shiftKey) {
-          valueMultiselection.push(target);
+          console.error("No target found");
         }
       }
 
@@ -755,6 +836,21 @@ new (function () {
       }
 
       if (e.key === "Escape") {
+        // backing out of a chord prompt should clear the current chord without affecting the selection
+        if (isPromptingChord()) {
+          const chordContainer = document.querySelector(
+            ".__wizzy-current-chords"
+          );
+
+          const chordBranches = chordContainer.querySelector(
+            ".__wizzy-current-chords-branches"
+          );
+
+          editor.state.chord = [];
+          chordBranches.innerHTML = "";
+          return;
+        }
+
         for (const element of getSelection()) {
           element.removeAttribute("__wizzy-selected");
         }
@@ -826,23 +922,6 @@ new (function () {
 
   function isPromptingChord() {
     return editor.state.chord.length > 0;
-  }
-
-  function onChord() {
-    const currentBranch = getCurrentChordBranch();
-
-    if (editor.state.chord.length === 0) {
-      const chordStreak = editor.state.chordContainer.querySelector(
-        ".__wizzy-current-chords-branches"
-      );
-
-      chordStreak.innerHTML = "";
-
-      addChord({ options: currentBranch });
-      return;
-    }
-
-    addChord({ options: currentBranch });
   }
 
   function undo() {
@@ -1353,6 +1432,24 @@ new (function () {
         iterations: 2,
       }
     );
+  }
+
+  function loadPreferences() {
+    // testing
+    localStorage.removeItem(LOCALSTORAGE_TARGET_PREFERENCES);
+
+    const preferences = localStorage.getItem(LOCALSTORAGE_TARGET_PREFERENCES);
+
+    if (!preferences) {
+      localStorage.setItem(
+        LOCALSTORAGE_TARGET_PREFERENCES,
+        JSON.stringify(defaultPreferences)
+      );
+
+      return JSON.parse(localStorage.getItem(LOCALSTORAGE_TARGET_PREFERENCES));
+    }
+
+    return JSON.parse(preferences);
   }
 
   function save() {

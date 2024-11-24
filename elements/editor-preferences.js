@@ -1,34 +1,11 @@
 import html from "../lib/html.js";
 import editorWindow from "./editor-window.js";
 
-export function editorPreferences(localStorageTarget = "") {
-  const defaultPreferences = [
-    {
-      group: "Elements",
-      items: [
-        {
-          name: "Prevent appending inside:",
-          type: "textarea",
-          value: `p,\nh1,\nh2,\nh3,\nh4,\nh5,\nh6,\nimg,\nbutton,\nlabel,\ninput,\ntextarea,\nembed`,
-        },
-      ],
-    },
-  ];
+const DEBUG_CLEAR_LOCAL_STORAGE = true;
 
-  // testing
-  localStorage.removeItem(localStorageTarget);
-
-  if (!localStorage.getItem(localStorageTarget)) {
-    // initialize localStorage with default values
-    localStorage.setItem(
-      localStorageTarget,
-      JSON.stringify(defaultPreferences)
-    );
-  }
-
-  let preferences = JSON.parse(localStorage.getItem(localStorageTarget));
-
+export function editorPreferences(localStorageTarget = "", preferences) {
   console.log(preferences);
+
   const preferencesContainer = editorWindow({
     title: "Preferences",
 
@@ -120,12 +97,60 @@ ${item.value}</textarea
           const MAX_ROWS = 8;
 
           const textArea = res.querySelector("textarea");
-          res.updateSize = () => {
+          /**
+           *
+           * @param {InputEvent} e
+           */
+          res.updateSize = (e) => {
+            console.log(e);
+            if (e) {
+              e.stopPropagation();
+
+              const data = e.data;
+
+              if (data) {
+                textArea.value += data;
+              }
+            }
+
             const rows = textArea.value.split("\n").length;
             textArea.rows = Math.min(rows, MAX_ROWS);
           };
+
           res.updateSize();
           textArea.addEventListener("input", res.updateSize);
+          break;
+
+        case "number":
+          res = html`
+            <div class="__wizzy-preferences-item">
+              <label for="${item.name}">${item.name}</label>
+              <div class="__wizzy-preferences-item-value">
+                <input
+                  type="number"
+                  id="${item.name}"
+                  name="${item.name}"
+                  value="${item.value}"
+                />
+              </div>
+            </div>
+          `;
+          break;
+
+        case "checkbox":
+          res = html`
+            <div class="__wizzy-preferences-item">
+              <label for="${item.name}">${item.name}</label>
+              <div class="__wizzy-preferences-item-value">
+                <input
+                  type="checkbox"
+                  id="${item.name}"
+                  name="${item.name}"
+                  ${item.value ? "checked" : ""}
+                />
+              </div>
+            </div>
+          `;
           break;
 
         default:
@@ -202,6 +227,19 @@ ${item.value}</textarea
       newPreferences.push({ group: groupName, items: newItems });
     }
   });
+
+  preferencesContainer.appendChild(html`
+    <style>
+      @scope (.__wizzy-window[id="${preferencesContainer.id}"]) {
+        :scope {
+          & {
+            z-index: 10000000009;
+            backdrop-filter: blur(12px);
+          }
+        }
+      }
+    </style>
+  `);
 
   return preferencesContainer;
 }

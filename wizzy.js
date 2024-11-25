@@ -15,6 +15,7 @@ import getTools from "./tools.js";
 import { EditorCommand } from "./editor-commands.js";
 
 // Functions that create complex elements
+
 import contextMenu from "./elements/contextmenu.js";
 import editorDomPath from "./elements/editor-dompath.js";
 import quickEdit from "./elements/element-quickedit.js";
@@ -33,6 +34,7 @@ import {
 } from "./elements/commands.js";
 import quickStyles from "./elements/element-quickstyles.js";
 import { addChord, chordContainer } from "./elements/editor-chords.js";
+import elementReference from "./elements/editor-element-reference.js";
 
 /**
  * using new() with an IIFE to allow for a private stateful object instance
@@ -128,41 +130,131 @@ new (function () {
       },
     },
 
+    // temporary internal selection array to allow for the querying methods to return the dictionary root and still
+    // remember the selected elements of the previous query
+    tempSelection: [],
+
     chord: [],
 
     chords: {
+      m: {
+        // margin
+        text: "Margin",
+        key: "margin",
+        allowManual: true,
+
+        a: () => {
+          sel.reset().set.style("margin", "auto");
+        },
+
+        s: {
+          text: "Self...",
+          // place-self
+          p: {
+            text: "Place Self",
+            key: "place-self",
+
+            arrowup: () => {},
+
+            arrowdown: () => {},
+
+            arrowleft: () => {},
+
+            arrowright: () => {},
+          },
+        },
+
+        t: {
+          text: "Topside Margin",
+          key: "margin-top",
+
+          arrowup: () => {
+            sel
+              .reset()
+              .set.style(
+                "margin-top",
+                `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+              );
+          },
+
+          arrowdown: () => {
+            sel
+              .reset()
+              .set.style(
+                "margin-top",
+                `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+              );
+          },
+
+          arrowleft: () => {
+            sel
+              .reset()
+              .set.style(
+                "margin-top",
+                `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+              );
+          },
+
+          arrowright: () => {
+            sel
+              .reset()
+              .set.style(
+                "margin-top",
+                `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+              );
+          },
+
+          a: {
+            text: "Auto",
+            arrowup: () => {
+              sel.reset().set.style("margin-top", "auto");
+            },
+          },
+
+          delete: () => {
+            sel.reset().set.style("margin-top", "");
+          },
+        },
+      },
       t: {
         // text-align
+
+        text: "Text Align",
+        key: "text-align",
+
         a: {
           text: "Text Align",
 
-          ArrowLeft: () => {
-            selection.set.style("text-align", "left");
+          arrowleft: () => {
+            sel.reset().set.style("text-align", "left");
           },
-          ArrowRight: () => {
-            selection.set.style("text-align", "right");
+          arrowright: () => {
+            sel.reset().set.style("text-align", "right");
           },
-          ArrowUp: () => {
-            selection.set.style("text-align", "center");
+          arrowup: () => {
+            sel.reset().set.style("text-align", "center");
           },
-          ArrowDown: () => {
-            selection.set.style("text-align", "justify");
+          arrowdown: () => {
+            sel.reset().set.style("text-align", "justify");
           },
         },
 
         // text-justify
         j: {
           text: "Text Justify",
-          ArrowLeft: () => {
-            selection.set.style("text-justify", "left");
+          key: "text-justify",
+
+          arrowleft: () => {
+            sel.reset().set.style("text-justify", "left");
           },
-          ArrowRight: () => {
-            selection.set.style("text-justify", "right");
+          arrowright: () => {
+            sel.reset();
+            sel.reset().set.style("text-justify", "right");
           },
-          ArrowUp: () => {
-            selection.set.style("text-justify", "center");
+          arrowup: () => {
+            sel.reset().set.style("text-justify", "center");
           },
-          ArrowDown: () => {},
+          arrowdown: () => {},
         },
 
         // text-decoration
@@ -183,22 +275,26 @@ new (function () {
         // padding
         text: "Padding",
 
-        ArrowUp: {
+        arrowup: {
           text: "Padding Top",
 
-          ArrowUp: () => {
-            selection.set.style(
-              "padding-top",
-              `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
-            );
+          arrowup: () => {
+            sel
+              .reset()
+              .set.style(
+                "padding-top",
+                `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+              );
 
             return `Increase top-side padding by ${state.cssSettings.length.step}${state.cssSettings.length.unit}.`;
           },
-          ArrowDown: () => {
-            selection.set.style(
-              "padding-top",
-              `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
-            );
+          arrowdown: () => {
+            sel
+              .reset()
+              .set.style(
+                "padding-top",
+                `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+              );
 
             return `Decrease top-side padding by ${state.cssSettings.length.step}${state.cssSettings.length.unit}.`;
           },
@@ -210,7 +306,7 @@ new (function () {
         text: "Font Weight",
         w: {
           text: "Font Weight",
-          ArrowUp: () => {
+          arrowup: () => {
             let { unit, step } = state.cssSettings.weight;
             step = Math.abs(step);
 
@@ -225,7 +321,7 @@ new (function () {
               );
             }
           },
-          ArrowDown: () => {
+          arrowdown: () => {
             let { unit, step } = state.cssSettings.weight;
             step = Math.abs(step);
 
@@ -245,7 +341,7 @@ new (function () {
         s: {},
         // font-size
         z: {
-          ArrowUp: () => {},
+          arrowup: () => {},
         },
       },
     },
@@ -488,122 +584,104 @@ new (function () {
     function onContextMenu(e) {
       e.preventDefault();
 
-      const test = contextMenu({
-        items: [
-          {
-            label: "New Element",
-            value: () => {
-              console.log("Test");
-            },
-          },
-          {
-            label: "Copy",
-            value: () => {
-              console.log("Test");
-            },
-          },
+      const target = e.target;
 
+      const items = [
+        [
           {
-            label: "Paste",
+            label: "Select",
             value: () => {
-              console.log("Test");
+              selectElement(target);
             },
           },
-
           {
-            label: "Cut",
+            label: "Unselect",
             value: () => {
-              console.log("Test");
+              unselectElement(target);
             },
           },
-
           {
             label: "Delete",
             value: () => {
-              console.log("Test");
+              removeElement(target);
             },
           },
-          {
-            label: "Duplicate",
-            value: () => {
-              console.log("Test");
-            },
-          },
-
-          // group
-          [
-            {
-              label: "Copy Style",
-              value: () => {
-                console.log("Test");
-              },
-            },
-            {
-              label: "Copy Attributes",
-              value: () => {
-                console.log("Test");
-              },
-            },
-            {
-              label: "Copy Text",
-              value: () => {
-                console.log("Test");
-              },
-            },
-          ],
-          [
-            {
-              label: "Clear Style",
-              value: () => {
-                console.log("Test");
-              },
-            },
-            {
-              label: "Clear Attributes",
-              value: () => {
-                console.log("Test");
-              },
-            },
-            {
-              label: "Clear Text",
-              value: () => {
-                console.log("Test");
-              },
-            },
-          ],
-          [
-            {
-              label: "Settings...",
-              value: [
-                {
-                  label: "Font",
-                  value: () => {
-                    console.log("Test");
-                  },
-                },
-                {
-                  label: "Theme",
-                  value: () => {
-                    console.log("Test");
-                  },
-                },
-                {
-                  label: "Editor",
-                  value: () => {
-                    console.log("Test");
-                  },
-                },
-              ],
-            },
-          ],
         ],
+      ];
+
+      const everyElementHasParent = Array.from(getSelection()).reduce(
+        (acc, element) => {
+          return acc && element.parentElement;
+        },
+        true
+      );
+
+      if (everyElementHasParent) {
+        items.push([
+          {
+            label: "Move to parent",
+            value: () => {
+              for (const element of getSelection()) {
+                const parent = element.parentElement;
+
+                const ref = elementReference({
+                  element,
+                  editor,
+                });
+
+                if (parent) {
+                  parent.appendChild(element);
+                } else {
+                  notification({
+                    type: "error",
+                    title: "Error",
+                    message: "Element has no parent",
+                  });
+
+                  continue;
+                }
+              }
+            },
+          },
+        ]);
+      }
+
+      if (!isBlockElement(target)) {
+        const group = [];
+
+        const selection = getSelection();
+
+        if (selection.length == 2) {
+          group.push({
+            label: "Swap",
+            value: () => {
+              swapElements(selection[0], selection[1]);
+            },
+          });
+        }
+
+        items.push(group);
+      }
+
+      switch (target.tagName) {
+        case "IMG":
+          break;
+
+        case "A":
+          break;
+      }
+
+      const ctxMenu = contextMenu({
+        items,
+        x: e.clientX,
+        y: e.clientY,
       });
 
-      test.style.position = "fixed";
-      test.style.left = `${e.clientX}px`;
-      test.style.top = `${e.clientY}px`;
+      ctxMenu.style.position = "fixed";
+      ctxMenu.style.left = `${e.clientX}px`;
+      ctxMenu.style.top = `${e.clientY}px`;
 
-      state.editorContainer.appendChild(test);
+      state.editorContainer.appendChild(ctxMenu);
     }
 
     function onClick(e) {
@@ -681,6 +759,10 @@ new (function () {
         return;
       }
 
+      if (e.key === "3") {
+        document.body.toggleAttribute("is-3d");
+      }
+
       // Don't block default behavior when the user is interacting with an input
       // Or the editor itself
       if (
@@ -692,6 +774,99 @@ new (function () {
         e.preventDefault();
       } else {
         e.stopPropagation();
+      }
+
+      //
+      //  .-|
+      //    |_  Chords
+      //    |_)
+      //
+
+      // these are meta keys which should not be considered as part of the chord,
+      // rather they determine its behavior
+      const notChordDictKeys = ["allowMultiple", "text", "key"];
+
+      let chordKeys = Object.keys(getCurrentChordBranch()).filter(
+        (key) => !notChordDictKeys.includes(key)
+      );
+
+      let currentBranch = getCurrentChordBranch();
+      let valueMultiSelection = [];
+
+      if (e.key === "Backspace" && chordKeys.length > 0) {
+        let newChord = editor.state.chord.slice(0, -1);
+        editor.state.chord = newChord;
+      } else if (chordKeys.includes(e.key.toLowerCase())) {
+        // If the current branch contains a key that matches the key pressed,
+        let target = currentBranch[e.key.toLowerCase()];
+        editor.state.chord.push(e.key.toLowerCase());
+
+        console.log(target);
+
+        if (target) {
+          if (typeof target === "object") {
+            const allowMultiple = target.allowMultiple || false;
+
+            if (allowMultiple) {
+              let propKey = target.key; // the actual CSS property key
+
+              if (!propKey) {
+                throw new Error(
+                  "No key provided. \
+                  \nA chord that supports adding multiple values must have a `key` property, which should be a valid CSS property key."
+                );
+              }
+
+              if (e.shiftKey) {
+                valueMultiSelection.push(target[e.key.toLowerCase()]);
+                selectionSetInlineStyle(propKey, valueMultiSelection.join(" "));
+              } else {
+                valueMultiSelection = [target[e.key.toLowerCase()]];
+                selectionSetInlineStyle(propKey, valueMultiSelection.join(" "));
+                return;
+              }
+            }
+          } else if (typeof target === "function") {
+            const res = target();
+            console.log(res);
+
+            state.chord = [];
+          }
+        } else {
+          console.error("No target found");
+        }
+      } else if (chordKeys.includes("allowManual")) {
+        if (e.key === " ") {
+          promptInput({
+            onEnter: (value) => {
+              selectionSetInlineStyle("margin", value);
+            },
+            onCancel: () => {
+              console.log("Canceled");
+            },
+            placeholder:
+              currentBranch.key || currentBranch.text || "Enter value",
+            x: state.mouse.x,
+            y: state.mouse.y,
+          });
+        }
+      } else {
+        console.error("No target found");
+        state.chord = [];
+      }
+
+      // we dont want to trigger other key events if we are in a chord
+      if (isPromptingChord()) {
+        console.log("Chord is active");
+      }
+
+      if (e.altKey) {
+        // moving the selection
+        if (e.key === "ArrowUp") {
+          for (const element of getSelection()) {
+            const dir = window.getComputedStyle(element).direction;
+          }
+        }
       }
 
       // CTRL+SHIFT commands
@@ -739,61 +914,6 @@ new (function () {
               newChild.removeAttribute("__wizzy-selected");
             }
           }
-        }
-      }
-
-      //
-      //  .-|
-      //    |_  Chords
-      //    |_)
-      //
-
-      // these are meta keys which should not be considered as part of the chord,
-      // rather they determine its behavior
-      const notChordDictKeys = ["allowMultiple", "text", "key"];
-
-      let chordKeys = Object.keys(getCurrentChordBranch()).filter(
-        (key) => !notChordDictKeys.includes(key)
-      );
-
-      const currentBranch = getCurrentChordBranch();
-      let valueMultiSelection = [];
-
-      if (e.key === "Backspace" && chordKeys.length > 0) {
-        let newChord = editor.state.chord.slice(0, -1);
-        editor.state.chord = newChord;
-      } else if (chordKeys.includes(e.key.toLowerCase())) {
-        // If the current branch contains a key that matches the key pressed,
-        let target = currentBranch[e.key.toLowerCase()];
-
-        if (target) {
-          if (typeof target === "object") {
-            const allowMultiple = target.allowMultiple || false;
-
-            if (allowMultiple) {
-              let propKey = target.key; // the actual CSS property key
-
-              if (!propKey) {
-                throw new Error(
-                  "No key provided. \
-                  \nA chord that supports adding multiple values must have a `key` property, which should be a valid CSS property key."
-                );
-              }
-
-              if (e.shiftKey) {
-                valueMultiSelection.push(target[e.key.toLowerCase()]);
-                selectionSetInlineStyle(propKey, valueMultiSelection.join(" "));
-              } else {
-                valueMultiSelection = [target[e.key.toLowerCase()]];
-                selectionSetInlineStyle(propKey, valueMultiSelection.join(" "));
-                return;
-              }
-            }
-          } else if (typeof target === "function") {
-            const res = target();
-          }
-        } else {
-          console.error("No target found");
         }
       }
 
@@ -1006,25 +1126,25 @@ new (function () {
     return document.querySelectorAll("[__wizzy-selected]");
   }
 
-  // temporary internal selection array to allow for the querying methods to return the dictionary root and still
-  // remember the selected elements of the previous query
-  let tempSelection = getSelection();
+  let tempSelection = state.tempSelection;
 
   /**
    * Quick way to modify or work with selected elements
    */
-  const selection = {
+  const sel = {
     /** Resets the internal selection array */
     reset: () => {
       tempSelection = getSelection();
+
+      return sel;
     },
 
     set: {
       style: (property, value) => {
-        selectionSetInlineStyle(property, value);
+        selectionSetInlineStyle(property, value, tempSelection);
       },
       attr: (attribute, value) => {
-        selectionSetAttribute(attribute, value);
+        selectionSetAttribute(attribute, value, tempSelection);
       },
 
       /**
@@ -1045,7 +1165,7 @@ new (function () {
 
           return {
             then: {
-              ...selection,
+              ...sel,
             },
           };
         },
@@ -1066,7 +1186,7 @@ new (function () {
 
           return {
             then: {
-              ...selection,
+              ...sel,
             },
           };
         },
@@ -1081,7 +1201,7 @@ new (function () {
 
       tempSelection = intersection;
 
-      return selection;
+      return sel;
     },
     add: {
       elements: (...elements) => {
@@ -1109,7 +1229,7 @@ new (function () {
 
         tempSelection = getSelection();
 
-        return selection;
+        return sel;
       },
       query: (querySelector) => {
         const newSelection = document.querySelectorAll(querySelector);
@@ -1120,45 +1240,54 @@ new (function () {
 
         tempSelection = getSelection();
 
-        return selection;
+        return sel;
       },
     },
     empty: () => {
-      for (const element of tempSelection) {
+      for (const element of document.querySelectorAll("[__wizzy-selected]")) {
         element.removeAttribute("__wizzy-selected");
       }
 
       tempSelection = getSelection();
 
-      return selection;
+      return sel;
     },
     replaceWith: (element) => {
-      for (const selected of tempSelection) {
+      for (const selected of document.querySelectorAll("[__wizzy-selected]")) {
         selected.replaceWith(element);
       }
 
       tempSelection = getSelection();
 
-      return selection;
+      return sel;
     },
     animate: (keyframes, options) => {
       for (const element of tempSelection) {
         element.animate(keyframes, options);
       }
 
-      return selection;
+      return sel;
     },
   };
 
   function elementSetInlineStyle(target, property, value) {
-    // set the css text of the element (attribute)
-    let cssText = target.getAttribute("style") || "";
+    if (value === "") {
+      // auto-remove
+      let cssText = target.getAttribute("style") || "";
+      cssText = cssText.replace(new RegExp(`${property}: [^;]+;`), "");
+      target.setAttribute("style", cssText.trim());
+    } else {
+      // set the css text of the element (attribute)
+      let cssText = target.getAttribute("style") || "";
 
-    // remove the property if it already exists
-    cssText = cssText.replace(new RegExp(`${property}: [^;]+;`), "");
+      // remove the property if it already exists
+      cssText = cssText.replace(new RegExp(`${property}: [^;]+;`), "");
 
-    // add the new property and value
-    cssText += ` ${property}: ${value};`;
+      // add the new property and value
+      cssText += ` ${property}: ${value};`;
+
+      target.setAttribute("style", cssText.trim());
+    }
 
     animateElementUpdate(target);
   }
@@ -1167,7 +1296,14 @@ new (function () {
    *
    * @param {{property: string, value: string}} options
    */
-  function selectionSetInlineStyle(property, value, selection = tempSelection) {
+  function selectionSetInlineStyle(
+    property,
+    value,
+    selection = state.tempSelection
+  ) {
+    console.log(selection);
+    console.log(property, value);
+    console.log(tempSelection);
     if (!property) {
       console.error("No property provided");
       return;
@@ -1178,7 +1314,11 @@ new (function () {
     }
   }
 
-  function selectionSetAttribute(attribute, value, selection = tempSelection) {
+  function selectionSetAttribute(
+    attribute,
+    value,
+    selection = state.tempSelection
+  ) {
     if (!attribute) {
       console.error("No attribute provided");
       return;
@@ -1239,6 +1379,36 @@ new (function () {
     }
   }
 
+  function moveToParent(element) {
+    const parent = element.parentElement;
+
+    if (!parent) {
+      console.error("No parent found");
+      return;
+    }
+
+    parent.appendChild(element);
+  }
+
+  function swapElements(element1, element2) {
+    const parent1 = element1.parentElement;
+    const parent2 = element2.parentElement;
+
+    if (!parent1 || !parent2) {
+      console.error("No parent found");
+      return;
+    }
+
+    const i1 = Array.from(parent1.children).indexOf(element1);
+    const i2 = Array.from(parent2.children).indexOf(element2);
+
+    parent1.insertBefore(element2, parent1.children[i1]);
+    parent2.insertBefore(element1, parent2.children[i2]);
+
+    animateElementUpdate(element1);
+    animateElementUpdate(element2);
+  }
+
   /**
    * Returns the user tool of the given id
    * @param {string} id - The id of the tool to get
@@ -1246,6 +1416,51 @@ new (function () {
    */
   function getTool(id = "div") {
     return state.editorContainer.querySelector(`#__wizzy-tool-${id}`);
+  }
+
+  function promptInput({
+    x,
+    y,
+    placeholder = "",
+    type = "text",
+    onEnter = (value) => {},
+    onCancel = () => {},
+  }) {
+    const previousFocus = document.activeElement;
+
+    const el = html`<input
+      type="${type}"
+      class="__wizzy-input"
+      style="position: fixed; top: ${y}px; left: ${x}px; z-index: 1000000002;"
+      placeholder="${placeholder}"
+    />`;
+
+    el.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Escape") {
+        onCancel();
+        el?.remove();
+        previousFocus?.focus();
+      }
+
+      if (e.key === "Enter") {
+        onEnter(el.value);
+        el?.remove();
+        previousFocus?.focus();
+      }
+    });
+    state.editorContainer.appendChild(el);
+
+    // make sure the input is within the viewport
+    if (el.getBoundingClientRect().right > window.innerWidth) {
+      el.style.left = `${window.innerWidth - el.offsetWidth}px`;
+    }
+
+    if (el.getBoundingClientRect().bottom > window.innerHeight) {
+      el.style.top = `${window.innerHeight - el.offsetHeight}px`;
+    }
+
+    el.focus();
   }
 
   /**
@@ -1414,13 +1629,18 @@ new (function () {
     }
   }
 
+  function getBoxDirection(element) {
+    return window.getComputedStyle(element).flexDirection || "row";
+  }
+
   function isBlockElement(element) {
     const displayStyle = window.getComputedStyle(element).display;
 
     return (
-      displayStyle === "block" ||
-      displayStyle === "flex" ||
-      displayStyle === "grid"
+      displayStyle !== "inline" &&
+      displayStyle !== "inline-block" &&
+      displayStyle !== "inline-flex" &&
+      displayStyle !== "inline-grid"
     );
   }
 
@@ -1542,6 +1762,15 @@ new (function () {
   }
 
   requestAnimationFrame(animate);
+
+  this.moveToParent = moveToParent;
+  this.swapElements = swapElements;
+  this.getSelection = getSelection;
+  this.getTool = getTool;
+  this.promptInput = promptInput;
+  this.promptQuerySelector = promptQuerySelector;
+  this.animateElementUpdate = animateElementUpdate;
+  this.sel = sel;
 
   document.addEventListener("DOMContentLoaded", main);
 })();

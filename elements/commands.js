@@ -1,5 +1,5 @@
 import html from "../lib/html.js";
-import { getMaterialIconFor } from "../util/element-utils.js";
+import { getMaterialIcon } from "../util/element-utils.js";
 import contextMenu from "./contextmenu.js";
 
 /**
@@ -10,7 +10,6 @@ import contextMenu from "./contextmenu.js";
  * @returns {HTMLElement} - The hotbar element
  */
 export function hotbar({ slots = [] }) {
-
   const el = html`
     <div class="__wizzy-hotbar">
       <style>
@@ -22,7 +21,6 @@ export function hotbar({ slots = [] }) {
               grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
               grid-auto-rows: 50px;
               gap: 0.5rem;
-              
 
               bottom: 0.5rem;
               left: 0.5rem;
@@ -94,7 +92,6 @@ export function hotbarSlot({ command, key = "" }) {
             }
 
             .__wizzy-command {
-
               display: flex;
               flex-direction: column;
               justify-content: center;
@@ -120,7 +117,6 @@ export function hotbarSlot({ command, key = "" }) {
                 font-size: 2rem;
                 pointer-events: none;
 
-                
                 &::before {
                   content: attr(icon);
                 }
@@ -187,9 +183,7 @@ export function command({
   brief = "",
   action = () => {},
   editor = null,
-  contextMenu: ctxMenu = [
-    { label: "Click me!", value: (e) => console.log(e) },
-  ]
+  contextMenu: ctxMenu = [{ label: "Click me!", value: (e) => console.log(e) }],
 }) {
   const el = html`
     <span
@@ -298,7 +292,13 @@ export function commandSearchMenu({ commands = [] }) {
 }
 
 export function insertHTMLSnippetCommand({ outerHTML = "", editor }) {
-  function htmlPreviewBox({ previewElement = document.createElement('div'), x = 0, y = 0, width = 0, height = 0 }) {
+  function htmlPreviewBox({
+    previewElement = document.createElement("div"),
+    x = 0,
+    y = 0,
+    width = 0,
+    height = 0,
+  }) {
     const previewContainer = html`
       <div class="__wizzy-html-preview-box">
         <style>
@@ -320,21 +320,19 @@ export function insertHTMLSnippetCommand({ outerHTML = "", editor }) {
           }
         </style>
 
-        <div class="__wizzy-html-preview-box-content">
-
-        </div>
+        <div class="__wizzy-html-preview-box-content"></div>
       </div>
     `;
 
     return previewContainer;
   }
 
-  const preview = html`${ outerHTML }`;
+  const preview = html`${outerHTML}`;
   const outerTag = preview.tagName.toLowerCase();
 
   const cmd = command({
     name: "Insert HTML Snippet",
-    icon: getMaterialIconFor(outerTag),
+    icon: getMaterialIcon(outerTag),
     description: "Inserts an HTML snippet into the editor",
     brief: "Inserts an HTML snippet",
     editor,

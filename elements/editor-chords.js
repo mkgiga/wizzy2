@@ -177,3 +177,8 @@ export function chordContainer({ options = {} }) {
 
   return el;
 }
+
+export default {
+  addChord,
+  chordContainer,
+};

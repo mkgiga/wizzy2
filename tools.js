@@ -5,13 +5,13 @@
 
 import { tool } from "./elements/toolbar.js";
 import html from "./lib/html.js";
-import { getMaterialIconFor } from "./util/element-utils.js";
+import { getMaterialIcon } from "./util/element-utils.js";
 
 export default function ({ editor }) {
   const res = [
     tool({
       toolId: "div",
-      icon: getMaterialIconFor("div"),
+      icon: getMaterialIcon("div"),
       title: "Div",
       onSelect: function (e) {
         console.log(editor);
@@ -26,7 +26,7 @@ export default function ({ editor }) {
 
     tool({
       toolId: "p",
-      icon: getMaterialIconFor("p"),
+      icon: getMaterialIcon("p"),
       title: "Paragraph",
       onSelect: function (e) {
         console.log("Paragraph selected");
@@ -46,9 +46,7 @@ export default function ({ editor }) {
     }),
   ];
 
-
   res.forEach((tool) => {
-    
     tool.onUse = tool.onUse.bind({ editor });
     tool.onSelect = tool.onSelect.bind({ editor });
   });

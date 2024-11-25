@@ -5,7 +5,6 @@
  */
 export class EditorCommand {
   /**
-   *
    * @param {Object} options
    * @param {typeof import("./wizzy.js").WizzyEditor} options.editor - The editor instance.
    * @param {Object} options.params - The parameters for the command.

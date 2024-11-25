@@ -16,14 +16,14 @@ import { EditorCommand } from "./editor-commands.js";
 
 // Functions that create complex elements
 
-import contextMenu from "./elements/contextmenu.js";
+import contextMenu from "./elements/context-menu.js";
 import editorDomPath from "./elements/editor-dompath.js";
 import quickEdit from "./elements/element-quickedit.js";
 import editorContainer from "./elements/editor-container.js";
 import elementInfo from "./elements/element-info.js";
 import editorWindow from "./elements/editor-window.js";
-import { tabMenu } from "./elements/tab-menu.js";
-import { tools, tool } from "./elements/toolbar.js";
+import { tabMenu } from "./elements/editor-tab-menu.js";
+import { tools, tool } from "./elements/editor-toolbar.js";
 import { editorPreferences } from "./elements/editor-preferences.js";
 import {
   hotbar,
@@ -31,7 +31,7 @@ import {
   command,
   commandSearchMenu,
   insertHTMLSnippetCommand,
-} from "./elements/commands.js";
+} from "./elements/editor-commands.js";
 import quickStyles from "./elements/element-quickstyles.js";
 import { addChord, chordContainer } from "./elements/editor-chords.js";
 import elementReference from "./elements/editor-element-reference.js";

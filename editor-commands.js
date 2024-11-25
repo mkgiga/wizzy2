@@ -1,7 +1,14 @@
+import { command } from "./elements/editor-commands.js";
+
 /**
  * @abstract
  * Represents a command that can be executed by the editor.
  * Should have a reverse operation that can be executed to undo the command
+ *
+ * @property {Object} params - The parameters for the command.
+ * @property {string} description - A description of the command.
+ * @property {string} name - The name of the command.
+ * @property {typeof import("./wizzy.js").WizzyEditor} editor - The editor instance.
  */
 export class EditorCommand {
   /**
@@ -9,13 +16,48 @@ export class EditorCommand {
    * @param {typeof import("./wizzy.js").WizzyEditor} options.editor - The editor instance.
    * @param {Object} options.params - The parameters for the command.
    */
-  constructor({ editor, params = {} }) {
+  constructor({
+    editor,
+    params = {},
+    description = "",
+    name = "",
+    brief = "",
+    icon = "",
+  }) {
     this.editor = editor;
     this.params = params;
+    this._description = description;
+    this._name = name;
+    this._brief = brief;
+    this._icon = icon;
   }
 
-  get history() {
-    return this.editor.history;
+  get name() {
+    return this.name || this.constructor.name;
+  }
+
+  get icon() {
+    return this._icon || "javascript";
+  }
+
+  get brief() {
+    return this._brief || "";
+  }
+
+  get description() {
+    return this._description || "";
+  }
+
+  createElement() {
+    const cmd = command({
+      name: this.name,
+      description: this.description,
+      brief: this.brief,
+      icon: this._icon,
+      action: () => this.do(),
+    });
+
+    return cmd;
   }
 
   /**

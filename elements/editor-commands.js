@@ -31,6 +31,18 @@ export function hotbar({ slots = [] }) {
               margin: 0;
               z-index: 1000000001;
             }
+
+            &[user-can-add] {
+              .__wizzy-hotbar-new-slot {
+                display: flex;
+              }
+            }
+
+            &:not([user-can-add]) {
+              .__wizzy-hotbar-new-slot {
+                display: none;
+              }
+            }
           }
         }
       </style>
@@ -39,6 +51,20 @@ export function hotbar({ slots = [] }) {
 
   slots.forEach((slot) => {
     el.appendChild(slot);
+  });
+
+  const addNewSlotElement = hotbarSlot({
+    command: command({
+      action: () => {
+        const slot = hotbarSlot({ command: command({}) });
+        el.appendChild(slot);
+      },
+      name: "Add new slot",
+      icon: "add",
+      description: "Adds a new slot to the hotbar",
+    }),
+    type: "html",
+    key: null,
   });
 
   return el;
@@ -205,7 +231,15 @@ export function command({
   el.querySelector(".__wizzy-command-brief").textContent = brief;
   el.querySelector(".__wizzy-command-description").textContent = description;
 
-  el.addEventListener("click", action.bind({ editor }));
+  el.addEventListener("click", (e) => {
+    if (typeof action === "function") {
+      action.call(editor, e);
+    } else if (typeof action === "string") {
+      editor.insertAdjacentHTML("beforeend", action);
+    } else {
+      throw new Error("Invalid action type, expected string or function");
+    }
+  });
 
   el.addEventListener("contextmenu", (e) => {
     const menu = contextMenu({

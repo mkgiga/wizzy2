@@ -3,7 +3,7 @@
  * @description Contains all the tools that can be selected and used by the user.
  */
 
-import { tool } from "./elements/toolbar.js";
+import { tool } from "./elements/editor-toolbar.js";
 import html from "./lib/html.js";
 import { getMaterialIcon } from "./util/element-utils.js";
 

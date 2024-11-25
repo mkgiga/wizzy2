@@ -53,7 +53,7 @@ export function tools({ itemElements = [], editor }) {
  * @param {String} options.title
  * @param {Function} options.onSelect
  * @param {Function} options.onUse
- * @param {Object} options.editor 
+ * @param {Object} options.editor
  * @returns {HTMLElement}
  */
 export function tool({
@@ -62,7 +62,7 @@ export function tool({
   title = "Tool",
   onSelect = (e) => {},
   onUse = (e) => {},
-  editor
+  editor,
 }) {
   const el = html`
     <div class="__wizzy-tool">
@@ -106,10 +106,11 @@ export function tool({
           }
         }
       </style>
-      <button class="material-icons __wizzy-tool-icon" title="${title}">${icon}</button>
+      <button class="material-icons __wizzy-tool-icon" title="${title}">
+        ${icon}
+      </button>
     </div>
   `;
-
 
   const onClick = (e) => {
     const otherTools = document.querySelectorAll(".__wizzy-tool");
@@ -120,7 +121,7 @@ export function tool({
     el.setAttribute("selected", "");
 
     onSelect(e);
-  }
+  };
 
   function onUsed(e) {
     onUse(e);
@@ -129,7 +130,6 @@ export function tool({
   el.onUse = onUse.bind(editor);
   el.onSelect = onSelect.bind(editor);
 
-  
   el.addEventListener("click", onClick);
 
   el.setAttribute("id", `__wizzy-tool-${id}`);

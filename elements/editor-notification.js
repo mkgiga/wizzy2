@@ -52,4 +52,14 @@ export default function editorNotification({
       </span>
     </div>
   `;
+
+  el.classList.add(`__wizzy-notification-${type}`);
+
+  el.tmr = null;
+
+  el.querySelector(".__wizzy-close-button").addEventListener("click", () => {
+    el.remove();
+  });
+
+  return el;
 }

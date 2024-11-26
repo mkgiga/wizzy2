@@ -1,3 +1,4 @@
+import { EditorCommand } from "../editor-commands.js";
 import html from "../lib/html.js";
 import { getMaterialIcon } from "../util/element-utils.js";
 import contextMenu from "./context-menu.js";
@@ -9,7 +10,7 @@ import contextMenu from "./context-menu.js";
  * @param {Array} options.slots - Array of hotbar slots
  * @returns {HTMLElement} - The hotbar element
  */
-export function hotbar({ slots = [] }) {
+export function hotbar({ slots = [], showAddButton = false, editor }) {
   const el = html`
     <div class="__wizzy-hotbar">
       <style>
@@ -56,8 +57,15 @@ export function hotbar({ slots = [] }) {
   const addNewSlotElement = hotbarSlot({
     command: command({
       action: () => {
-        const slot = hotbarSlot({ command: command({}) });
-        el.appendChild(slot);
+        const newCommand = command({
+          name: "New Command",
+          icon: "add",
+          description: "New command",
+          brief: "New command",
+          action: () => {
+            console.log("New command");
+          },
+        });
       },
       name: "Add new slot",
       icon: "add",
@@ -176,11 +184,27 @@ export function hotbarSlot({ command, key = "" }) {
     </div>
   `;
 
+  el.run = () => {
+    if (typeof command.action === "function") {
+      command.action();
+    } else if (command instanceof HTMLElement) {
+      editor.addElement(command);
+    } else if (command instanceof EditorCommand) {
+      command.do();
+    } else {
+      console.error(
+        "Invalid command type, expected Function, HTMLElement, or",
+        EditorCommand
+      );
+      throw new Error("Invalid command type");
+    }
+  };
+
   el.appendChild(command);
 
   window.addEventListener("keydown", (e) => {
     if (e.key === key) {
-      command.action();
+      el.run();
     }
   });
 
@@ -211,6 +235,10 @@ export function command({
   editor = null,
   contextMenu: ctxMenu = [{ label: "Click me!", value: (e) => console.log(e) }],
 }) {
+  if (!Array.isArray(ctxMenu)) {
+    throw new Error("Invalid context menu type, expected Array.");
+  }
+
   const el = html`
     <span
       class="__wizzy-command"
@@ -243,7 +271,16 @@ export function command({
 
   el.addEventListener("contextmenu", (e) => {
     const menu = contextMenu({
-      items: ctxMenu,
+      items: [
+        [
+          {
+            label: "Run",
+            value: (e) => {
+              action.call(editor, e);
+            },
+          },
+        ],
+      ].concat(ctxMenu),
       x: e.clientX,
       y: e.clientY,
     });

@@ -15,6 +15,10 @@ export class EditorCommand {
    * @param {Object} options
    * @param {typeof import("./wizzy.js").WizzyEditor} options.editor - The editor instance.
    * @param {Object} options.params - The parameters for the command.
+   * @param {string} options.description - A description of the command. (any length)
+   * @param {string} options.name - The name of the command.
+   * @param {string} options.brief - A brief description of the command. (10-50) characters.
+   * @param {string} options.icon - The icon to display for the command (material-icons).
    */
   constructor({
     editor,

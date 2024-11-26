@@ -35,6 +35,7 @@ import {
 import quickStyles from "./elements/element-quickstyles.js";
 import { addChord, chordContainer } from "./elements/editor-chords.js";
 import elementReference from "./elements/editor-element-reference.js";
+import editorNotification from "./elements/editor-notification.js";
 
 /**
  * using new() with an IIFE to allow for a private stateful object instance
@@ -84,6 +85,27 @@ new (function () {
           name: "Auto-select duplicated elements",
           type: "checkbox",
           value: false,
+        },
+      ],
+    },
+
+    {
+      group: "Notifications",
+      items: [
+        {
+          name: "Log console messages as notifications",
+          type: "checkbox",
+          /**
+           * @todo disable this feature by default (testing now)
+           */
+          value: true,
+          tags: ["console", "notifications", "log", "debug", "messages"],
+        },
+        {
+          name: "Notification time",
+          type: "number",
+          value: 4000,
+          tags: ["notifications", "time", "duration", "debug", "messages"],
         },
       ],
     },
@@ -383,13 +405,75 @@ new (function () {
 
   this.state = state;
 
+  function getPreference(group, name) {
+    return (
+      state.preferences
+        .find((item) => item.group === group)
+        .items.find((item) => item.name === name) || {
+        value: null,
+        type: null,
+        name: null,
+      }
+    );
+  }
+
   function main() {
     initPreferences();
     initStyle();
     initElements();
     initListeners();
+    initConsole();
 
     state.editorContainer.watch();
+  }
+
+  function notification({ type, title, message }) {
+    const notifications = state.notifications;
+
+    const notification = editorNotification({
+      type,
+      title,
+      text: message,
+    });
+
+    notifications.appendChild(notification);
+
+    notification.tmr = setTimeout(() => {
+      notification.animate([{ opacity: 1 }, { opacity: 0 }], {
+        duration: 3000,
+        easing: "ease-in-out",
+      }).onfinish = () => {
+        notification.remove();
+      };
+    }, getPreference("Notifications", "Notification time").value || 3000);
+
+    return notification;
+  }
+
+  function initConsole() {
+    for (const key of ["log", "error", "warn", "info"]) {
+      const originalMethod = console[key];
+
+      console[key] = function (...args) {
+        if (
+          getPreference(
+            "Notifications",
+            "Log console messages as notifications"
+          ).value
+        ) {
+          notification({
+            type: key,
+            title: key.slice(0, 1).toUpperCase() + key.slice(1),
+            message:
+              args.join("") === "[object Object]"
+                ? ""
+                : args.reduce((acc, item) => acc + item.toString(), ""),
+          });
+        }
+
+        originalMethod(...args);
+      };
+    }
   }
 
   function initPreferences() {
@@ -730,9 +814,12 @@ new (function () {
       }
     }
 
+    function onDragElement(element, x, y) {}
+
+    function onDropElement(element, x, y) {}
+
     function onDblClick(e) {
       const target = e.target;
-
       const parent = target.parentElement;
 
       if (!parent || parent.closest("[__wizzy-editor]")) {
@@ -831,6 +918,8 @@ new (function () {
             console.log(res);
 
             state.chord = [];
+
+            return;
           }
         } else {
           console.error("No target found");
@@ -1142,9 +1231,13 @@ new (function () {
     set: {
       style: (property, value) => {
         selectionSetInlineStyle(property, value, tempSelection);
+
+        return sel;
       },
       attr: (attribute, value) => {
         selectionSetAttribute(attribute, value, tempSelection);
+
+        return sel;
       },
 
       /**
@@ -1203,6 +1296,7 @@ new (function () {
 
       return sel;
     },
+
     add: {
       elements: (...elements) => {
         for (const element of elements) {
@@ -1210,6 +1304,8 @@ new (function () {
         }
 
         tempSelection = getSelection();
+
+        return sel;
       },
       query: (querySelector) => {
         const newSelection = document.querySelectorAll(querySelector);
@@ -1219,8 +1315,37 @@ new (function () {
         }
 
         tempSelection = getSelection();
+
+        return sel;
       },
     },
+    insert: {
+      these: (...elements) => {
+        const res = [];
+
+        for (const element of getSelection()) {
+          if (typeof element === "string") {
+            res.push(html`${element}`);
+          } else {
+            res.push(element);
+          }
+        }
+
+        tryPlaceElements(null, res);
+
+        return sel;
+      },
+
+      this: (element) => {
+        tryPlaceElements(
+          null,
+          typeof element === "string" ? [html`${element}`] : [element]
+        );
+
+        return sel;
+      },
+    },
+
     remove: {
       elements: (...elements) => {
         for (const element of elements) {
@@ -1243,6 +1368,7 @@ new (function () {
         return sel;
       },
     },
+
     empty: () => {
       for (const element of document.querySelectorAll("[__wizzy-selected]")) {
         element.removeAttribute("__wizzy-selected");
@@ -1252,6 +1378,7 @@ new (function () {
 
       return sel;
     },
+
     replaceWith: (element) => {
       for (const selected of document.querySelectorAll("[__wizzy-selected]")) {
         selected.replaceWith(element);
@@ -1407,6 +1534,44 @@ new (function () {
 
     animateElementUpdate(element1);
     animateElementUpdate(element2);
+  }
+
+  /**
+   * Adds an element to the document
+   * @param {HTMLElement | string} element - The element to add
+   * @param {"beforebegin" | "afterend" | "afterbegin" | "beforeend" | null} [selectorAdjacent] - The position to add the element. If unspecified, the element is appended to the body
+   */
+  function addElement({ element, selectorAdjacent = null }) {
+    if (typeof element === "string") {
+      element = html`${element}`;
+    }
+
+    if (!element instanceof HTMLElement) {
+      throw new Error(
+        "Invalid element, must be an instance of HTMLElement:",
+        element
+      );
+    }
+
+    const selection = getSelection();
+
+    switch (selectorAdjacent) {
+      case "beforebegin":
+        sel.break;
+
+      case "afterend":
+        break;
+
+      case "afterbegin":
+        break;
+
+      case "beforeend":
+        break;
+
+      default:
+        document.body.appendChild(element);
+        break;
+    }
   }
 
   /**
@@ -1764,6 +1929,7 @@ new (function () {
   requestAnimationFrame(animate);
 
   this.moveToParent = moveToParent;
+  this.addElement = addElement;
   this.swapElements = swapElements;
   this.getSelection = getSelection;
   this.getTool = getTool;

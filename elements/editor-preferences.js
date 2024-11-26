@@ -165,6 +165,15 @@ ${item.value}</textarea
           break;
       }
 
+      // getting an individual preference value regardless of the type
+      res.getValue = () => {
+        return (
+          res.querySelector("textarea")?.value ||
+          res.querySelector("input")?.value ||
+          res.querySelector("span").textContent
+        );
+      };
+
       itemsContainer.appendChild(res);
     }
 

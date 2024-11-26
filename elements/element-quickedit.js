@@ -99,7 +99,7 @@ export function quickEdit({ element = document.body, type = "attributes" }) {
 
   let input = null;
 
-  switch(type) {
+  switch (type) {
     case "attributes":
       input = attributeEdit({ element });
 
@@ -174,13 +174,11 @@ export function quickEdit({ element = document.body, type = "attributes" }) {
  */
 function attributeEdit({ element }) {
   console.log(element.attributes);
-  
+
   // Convert attributes into a serialized string, properly escaped
   let attributesArray = Array.from(element.attributes)
     .filter((attr) => attr.name !== "__wizzy-selected")
-    .map(
-      (attr) => `${attr.name}="${attr.value.replace(/"/g, '&quot;')}"`
-    ); // Escape quotes in attribute values
+    .map((attr) => `${attr.name}="${attr.value.replace(/"/g, "&quot;")}"`); // Escape quotes in attribute values
 
   const attributes = attributesArray.join(" "); // Join with spaces for proper formatting
 
@@ -191,11 +189,11 @@ function attributeEdit({ element }) {
     <input
       type="text"
       class="__wizzy-quickedit-input"
-      value="${attributes.replace(/"/g, '&quot;')}" 
+      value="${attributes.replace(/"/g, "&quot;")}"
       style="width: 100%; height: 100%; font-size: 12px; font-family: monospace;"
     />
   `;
-  
+
   console.log(el);
   return el;
 }
@@ -216,6 +214,5 @@ function classEdit({ element }) {
 
   return el;
 }
-
 
 export default quickEdit;

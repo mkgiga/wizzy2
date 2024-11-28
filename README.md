@@ -13,7 +13,7 @@ A visual power tool for rapid development of HTML/CSS user interfaces.
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [License](#license)
 
-# Overview
+## Overview
 
 Wizzy2 is a visual editor HTML/CSS webpages that allows for developers already familiar with HTML/CSS to rapidly prototype and design user interfaces that can be exported and used in any web project.
 

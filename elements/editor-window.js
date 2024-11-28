@@ -8,8 +8,12 @@ import randomUUID from "../util/randomUUID.js";
  * @param {Array<HTMLElement>} options.menuItems - An array of menu items to display in the window.
  * @param {HTMLElement|string|Array<HTMLElement>} options.toolbarContent - The content to display in the toolbar.
  * @param {HTMLElement|string} options.footerContent - The content to display in the footer.
+ * @param {HTMLElement|string} options.content - The content to display in the window.
  * @param {HTMLElement} options.editor - A reference to the editor state.
  * @param {string} options.position - The position of the window.
+ * @param {Object} options.cssOverrides - Custom CSS overrides.
+ * @param {Object} options.listeners - Event listeners.
+ * @param {Function} options.listeners.onRemove - The event listener for the remove button.
  * @returns {HTMLElement} The editor window element.
  * @throws {Error} If the toolbar content is not a valid type.
  * @throws {Error} If the footer content is not a valid type.

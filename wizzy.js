@@ -131,30 +131,42 @@ new (function () {
      */
     shadowRealm: document.createElement("div"),
 
-    /**
-     * @type {{
-     *   [key: string]: {
-     *     unit: string,
-     *     step: number,
-     *   }
-     * }}
-     * @description Settings for editing CSS properties, remembering user preferences for each type of property
-     */
-    cssSettings: {
-      length: {
-        unit: CssLengthUnit.PX,
-        step: 1,
+    project: {
+      /**
+       * @type {{
+       *   [key: string]: {
+       *     unit: string,
+       *     step: number,
+       *   }
+       * }}
+       * @description Settings for editing CSS properties, remembering user preferences for each type of property
+       */
+      cssSettings: {
+        length: {
+          unit: CssLengthUnit.PX,
+          step: 1,
+        },
+
+        time: {
+          unit: "s",
+          step: 0.1,
+        },
+
+        weight: {
+          unit: "",
+          step: 100,
+        },
       },
 
-      time: {
-        unit: "s",
-        step: 0.1,
-      },
+      /**
+       * The user-created HTML snippets that may be inserted into the page
+       * @type {{
+       *   [elementKey: string]: string
+       * }}
+       */
+      htmlElements: {
 
-      weight: {
-        unit: "",
-        step: 100,
-      },
+      }
     },
 
     // temporary internal selection array to allow for the querying methods to return the dictionary root and still
@@ -201,7 +213,7 @@ new (function () {
                 .reset()
                 .set.style(
                   "margin-top",
-                  `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+                  `${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`
                 );
             },
 
@@ -210,7 +222,7 @@ new (function () {
                 .reset()
                 .set.style(
                   "margin-top",
-                  `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+                  `-${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`
                 );
             },
 
@@ -219,7 +231,7 @@ new (function () {
                 .reset()
                 .set.style(
                   "margin-top",
-                  `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+                  `-${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`
                 );
             },
 
@@ -228,7 +240,7 @@ new (function () {
                 .reset()
                 .set.style(
                   "margin-top",
-                  `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+                  `${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`
                 );
             },
 
@@ -311,20 +323,20 @@ new (function () {
                 .reset()
                 .set.style(
                   "padding-top",
-                  `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+                  `${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`
                 );
 
-              return `Increase top-side padding by ${state.cssSettings.length.step}${state.cssSettings.length.unit}.`;
+              return `Increase top-side padding by ${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}.`;
             },
             arrowdown: () => {
               sel
                 .reset()
                 .set.style(
                   "padding-top",
-                  `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+                  `-${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`
                 );
 
-              return `Decrease top-side padding by ${state.cssSettings.length.step}${state.cssSettings.length.unit}.`;
+              return `Decrease top-side padding by ${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}.`;
             },
           },
         },
@@ -335,7 +347,7 @@ new (function () {
           w: {
             text: "Font Weight",
             arrowup: () => {
-              let { unit, step } = state.cssSettings.weight;
+              let { unit, step } = state.project.cssSettings.weight;
               step = Math.abs(step);
 
               for (const element of getSelection()) {
@@ -350,7 +362,7 @@ new (function () {
               }
             },
             arrowdown: () => {
-              let { unit, step } = state.cssSettings.weight;
+              let { unit, step } = state.project.cssSettings.weight;
               step = Math.abs(step);
 
               for (const element of getSelection()) {
@@ -614,6 +626,16 @@ new (function () {
 
     const ctx = overlay.getContext("2d");
 
+    // keep track of the warnings that are currently being displayed
+    // so that we don't display the same warning multiple times
+    /**
+     * @todo Implement showing a warning when a selected element has the same rect as its parent
+     * @type {{
+     *   [xPath: string]: HTMLElement
+     * }}
+     */
+    const sameRectWarnings = {};
+
     function animateOverlay() {
       const selection = getSelection();
 
@@ -655,6 +677,10 @@ new (function () {
             parentRect.width,
             parentRect.height
           );
+        } else {
+          // testing
+          console.log(selected.tagName);
+          debugger;
         }
 
         const rect = selected.getBoundingClientRect();

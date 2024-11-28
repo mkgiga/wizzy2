@@ -237,6 +237,105 @@
       text-align: right;
     }
   }
+  .__wizzy-custom-elements {
+    display: grid;
+    grid-template-areas:
+      "a b"
+      "c c";
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 9fr 1fr;
+    gap: 1rem;
+    height: 100%;
+    width: 100%;
+
+    .__wizzy-custom-elements-list-container {
+      grid-area: a;
+
+      .__wizzy-custom-elements-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        overflow-y: auto;
+        height: 100%;
+
+        li {
+          padding: 1rem;
+          border: 1px solid #ccc;
+          cursor: pointer;
+        }
+
+        li:focus {
+          outline: #ccc;
+          background: #f1f1f1;
+        }
+
+        li:hover {
+          background: #f1f1f1;
+        }
+
+        li:active {
+          background: #e1e1e1;
+        }
+      }
+    }
+
+    .__wizzy-custom-elements-editor {
+      grid-area: b;
+      
+      /* applies to both the html and css editors */
+      .__wizzy-code-editor-top-menu {
+            
+      }
+
+      .__wizzy-element-code-editor-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      textarea {
+
+      }
+
+      .__wizzy-custom-elements-html-editor {
+          
+          
+      }
+
+      .__wizzy-custom-elements-css-editor {
+          
+      }
+
+    }
+
+    .__wizzy-custom-elements-buttons {
+      grid-area: c;
+      display: flex;
+      align-content: center;
+      justify-content: center;
+
+      button {
+        padding: 1rem;
+        margin: 1rem;
+        border: 1px solid #ccc;
+        background: f1f1f1;
+        color: black;
+        cursor: pointer;
+      }
+    }
+
+    .__wizzy-custom-elements-separator {
+      width: 100%;
+      height: 1px;
+      min-height: 1px;
+      background: transparent;
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+    }
+  }
 }
 
 /* When the editor is in its enabled state, */

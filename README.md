@@ -5,7 +5,7 @@ A visual power tool for rapid development of HTML/CSS user interfaces.
 ## Table of Contents
 
 - [Overview](#overview)
-- [Current priorities](#current-priorities)
+- [Roadmap](#roadmap)
 - [Usage and Installation](#usage-and-installation)
   - [Installation](#1-installation)
   - [Usage](#2-usage)
@@ -16,15 +16,47 @@ A visual power tool for rapid development of HTML/CSS user interfaces.
 
 There are few tools available that succeed in providing a fast and intuitive way to create and iterate on web interfaces. In the past, tools like Adobe Dreamweaver and Microsoft Frontpage have tried to provide a visual interface for web development -- These tools often go out of their way to accommodate both developers and non-developers alike, and as a result, their interfaces are often described as cluttered and may overload the user with too many options, creating a sort of web-development equivalent to a DAW (Digital Audio Workstation) like FL Studio or Ableton Live. These tools are valuable in their field, but should not be the standard for a visual web development experience.
 
-## Current priorities
+## Roadmap
 
-- [ ] Visual feedback on chord presses to see what action is being performed and what you can press next
-- [x] Chord-based hotkeys for common actions (T -> A -> ArrowUp) = text-align: center
-- [x] Basic HTML/CSS inline editor
-- [x] Attributes/classes/inline style editor per-element
-- [ ] Quick styles menu on selection per-element (Alignment, padding, margin, etc.)
-- [x] Preferences menu
-- [ ] Quick color picker
+- [x] Basic inline HTML editing
+- [ ] Element selection
+  - [x] Click to select
+  - [ ] Multi-select
+    - [x] Ctrl click to add single element
+    - [ ] Shift click to add range of elements
+    - [x] Queryselector text prompt
+  - [x] Selection visualization
+    - [x] Highlighting
+      - [x] Single element
+      - [x] Multiple elements
+- [ ] Drag and drop elements
+  - [ ] Drag to rearrange
+  - [ ] Drag from a palette
+  - [ ] Drag to resize
+- [ ] CSS Editing
+  - [x] Inline CSS editing
+  - [ ] Global CSS editing
+    - [ ] Saving/tracking changes to global state of CSS
+- [ ] Custom elements
+  - [ ] Custom element editor
+    - [ ] HTML editor
+    - [ ] CSS editor
+    - [ ] JS editor
+- [ ] Commands
+  - [ ] Undo action
+  - [ ] Copy/Paste element
+  - [x] Delete element
+  - [ ] Duplicate element
+  - [x] Assignable command hotbar
+- [x] Context menus
+- [ ] Export page
+- [ ] Preferences and settings
+  - [x] Preferences window element
+  - [ ] Settings
+    - [ ] Custom Keybindings
+    - [ ] Appearance
+- [ ] Plugin system
+- [ ] Documentation
 
 ## Usage and Installation
 

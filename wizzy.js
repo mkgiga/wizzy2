@@ -522,7 +522,7 @@ new (function () {
 
     toolbarContainer.appendChild(toolbar);
 
-    state.editorContainer.appendChild(toolbarContainer);
+    /*state.editorContainer.appendChild(toolbarContainer);*/
 
     const selectedTool = state.editorContainer.querySelector(
       ".__wizzy-tool[selected]"

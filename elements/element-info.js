@@ -357,7 +357,13 @@ export default function elementInfo({ targetElement }) {
       return [x, y];
     };
 
-    let [x, y] = tryPlace(corners[0].x, corners[0].y);
+    let coords = tryPlace(corners[0].x, corners[0].y);
+
+    let x, y;
+
+    if (coords) {
+      [x, y] = coords;
+    }
 
     for (const corner of corners) {
       const res = tryPlace(corner.x, corner.y);

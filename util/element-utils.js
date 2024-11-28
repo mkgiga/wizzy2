@@ -1,7 +1,73 @@
 export function getMaterialIcon(tagName = "div") {
-  const res = materialIcons[tagName.toLowerCase()] || "extension";
+  const res =
+    materialIcons[
+      typeof tagName === "string"
+        ? tagName.toLowerCase()
+        : tagName.toString().toLowerCase()
+    ]?.toString() || "extension";
   return res;
 }
+
+const eventKeyToKbd = {
+  arrowup: "↑",
+  arrowdown: "↓",
+  arrowleft: "←",
+  arrowright: "→",
+  backspace: "⌫",
+  delete: "⌦",
+  enter: "↵",
+  escape: "ESC",
+  tab: "TAB",
+  shift: "⇧",
+  control: "CTRL",
+  alt: "ALT",
+  meta: "⊞",
+  capslock: "CAPS",
+  pageup: "PgUp",
+  pagedown: "PgDn",
+  home: "HOME",
+  end: "END",
+  insert: "INS",
+  f1: "F1",
+  f2: "F2",
+  f3: "F3",
+  f4: "F4",
+  f5: "F5",
+  f6: "F6",
+  f7: "F7",
+  f8: "F8",
+  f9: "F9",
+  f10: "F10",
+  f11: "F11",
+  f12: "F12",
+  a: "A",
+  b: "B",
+  c: "C",
+  d: "D",
+  e: "E",
+  f: "F",
+  g: "G",
+  h: "H",
+  i: "I",
+  j: "J",
+  k: "K",
+  l: "L",
+  m: "M",
+  n: "N",
+  o: "O",
+  p: "P",
+  q: "Q",
+  r: "R",
+  s: "S",
+  t: "T",
+  u: "U",
+  v: "V",
+  w: "W",
+  x: "X",
+  y: "Y",
+  z: "Z",
+};
+
 const materialIcons = {
   p: "text_fields",
   div: "view_module",

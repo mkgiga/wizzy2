@@ -51,13 +51,15 @@ export class EditorCommand {
   get description() {
     return this._description || "";
   }
-
   createElement() {
+    console.log("editor in EditorCommand", this.editor);
+
     const cmd = command({
       name: this.name,
       description: this.description,
       brief: this.brief,
       icon: this._icon,
+      editor: this.editor,
       action: () => this.do(),
     });
 

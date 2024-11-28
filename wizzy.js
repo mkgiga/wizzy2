@@ -33,7 +33,12 @@ import {
   insertHTMLSnippetCommand,
 } from "./elements/editor-commands.js";
 import quickStyles from "./elements/element-quickstyles.js";
-import { addChord, chordContainer } from "./elements/editor-chords.js";
+import {
+  addChord,
+  chordContainer,
+  removeAllChords,
+  removeLastChord,
+} from "./elements/editor-chords.js";
 import elementReference from "./elements/editor-element-reference.js";
 import editorNotification from "./elements/editor-notification.js";
 
@@ -98,7 +103,7 @@ new (function () {
           /**
            * @todo disable this feature by default (testing now)
            */
-          value: true,
+          value: false,
           tags: ["console", "notifications", "log", "debug", "messages"],
         },
         {
@@ -159,211 +164,213 @@ new (function () {
     chord: [],
 
     chords: {
-      m: {
-        // margin
-        text: "Margin",
-        key: "margin",
-        allowManual: true,
+      s: {
+        m: {
+          // margin
+          text: "Margin",
+          key: "margin",
+          allowManual: true,
 
-        a: () => {
-          sel.reset().set.style("margin", "auto");
-        },
-
-        s: {
-          text: "Self...",
-          // place-self
-          p: {
-            text: "Place Self",
-            key: "place-self",
-
-            arrowup: () => {},
-
-            arrowdown: () => {},
-
-            arrowleft: () => {},
-
-            arrowright: () => {},
-          },
-        },
-
-        t: {
-          text: "Topside Margin",
-          key: "margin-top",
-
-          arrowup: () => {
-            sel
-              .reset()
-              .set.style(
-                "margin-top",
-                `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
-              );
+          a: () => {
+            sel.reset().set.style("margin", "auto");
           },
 
-          arrowdown: () => {
-            sel
-              .reset()
-              .set.style(
-                "margin-top",
-                `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
-              );
-          },
+          s: {
+            text: "Self...",
+            // place-self
+            p: {
+              text: "Place Self",
+              key: "place-self",
 
-          arrowleft: () => {
-            sel
-              .reset()
-              .set.style(
-                "margin-top",
-                `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
-              );
-          },
+              arrowup: () => {},
 
-          arrowright: () => {
-            sel
-              .reset()
-              .set.style(
-                "margin-top",
-                `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
-              );
-          },
+              arrowdown: () => {},
 
-          a: {
-            text: "Auto",
-            arrowup: () => {
-              sel.reset().set.style("margin-top", "auto");
+              arrowleft: () => {},
+
+              arrowright: () => {},
             },
           },
 
-          delete: () => {
-            sel.reset().set.style("margin-top", "");
+          t: {
+            text: "Topside Margin",
+            key: "margin-top",
+
+            arrowup: () => {
+              sel
+                .reset()
+                .set.style(
+                  "margin-top",
+                  `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+                );
+            },
+
+            arrowdown: () => {
+              sel
+                .reset()
+                .set.style(
+                  "margin-top",
+                  `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+                );
+            },
+
+            arrowleft: () => {
+              sel
+                .reset()
+                .set.style(
+                  "margin-top",
+                  `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+                );
+            },
+
+            arrowright: () => {
+              sel
+                .reset()
+                .set.style(
+                  "margin-top",
+                  `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+                );
+            },
+
+            a: {
+              text: "Auto",
+              arrowup: () => {
+                sel.reset().set.style("margin-top", "auto");
+              },
+            },
+
+            delete: () => {
+              sel.reset().set.style("margin-top", "");
+            },
           },
         },
-      },
-      t: {
-        // text-align
+        t: {
+          // text-align
 
-        text: "Text Align",
-        key: "text-align",
-
-        a: {
           text: "Text Align",
+          key: "text-align",
 
-          arrowleft: () => {
-            sel.reset().set.style("text-align", "left");
+          a: {
+            text: "Text Align",
+
+            arrowleft: () => {
+              sel.reset().set.style("text-align", "left");
+            },
+            arrowright: () => {
+              sel.reset().set.style("text-align", "right");
+            },
+            arrowup: () => {
+              sel.reset().set.style("text-align", "center");
+            },
+            arrowdown: () => {
+              sel.reset().set.style("text-align", "justify");
+            },
           },
-          arrowright: () => {
-            sel.reset().set.style("text-align", "right");
+
+          // text-justify
+          j: {
+            text: "Text Justify",
+            key: "text-justify",
+
+            arrowleft: () => {
+              sel.reset().set.style("text-justify", "left");
+            },
+            arrowright: () => {
+              sel.reset();
+              sel.reset().set.style("text-justify", "right");
+            },
+            arrowup: () => {
+              sel.reset().set.style("text-justify", "center");
+            },
+            arrowdown: () => {},
           },
-          arrowup: () => {
-            sel.reset().set.style("text-align", "center");
+
+          // text-decoration
+          d: {
+            text: "Text Decoration",
+            key: "text-decoration",
+            allowMultiple: true,
+
+            b: "bold",
+            i: "italic",
+            u: "underline",
+            l: "line-through",
+            o: "overline",
+            s: {},
           },
-          arrowdown: () => {
-            sel.reset().set.style("text-align", "justify");
+        },
+        p: {
+          // padding
+          text: "Padding",
+
+          arrowup: {
+            text: "Padding Top",
+
+            arrowup: () => {
+              sel
+                .reset()
+                .set.style(
+                  "padding-top",
+                  `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+                );
+
+              return `Increase top-side padding by ${state.cssSettings.length.step}${state.cssSettings.length.unit}.`;
+            },
+            arrowdown: () => {
+              sel
+                .reset()
+                .set.style(
+                  "padding-top",
+                  `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
+                );
+
+              return `Decrease top-side padding by ${state.cssSettings.length.step}${state.cssSettings.length.unit}.`;
+            },
           },
         },
 
-        // text-justify
-        j: {
-          text: "Text Justify",
-          key: "text-justify",
-
-          arrowleft: () => {
-            sel.reset().set.style("text-justify", "left");
-          },
-          arrowright: () => {
-            sel.reset();
-            sel.reset().set.style("text-justify", "right");
-          },
-          arrowup: () => {
-            sel.reset().set.style("text-justify", "center");
-          },
-          arrowdown: () => {},
-        },
-
-        // text-decoration
-        d: {
-          text: "Text Decoration",
-          key: "text-decoration",
-          allowMultiple: true,
-
-          b: "bold",
-          i: "italic",
-          u: "underline",
-          l: "line-through",
-          o: "overline",
-          s: {},
-        },
-      },
-      p: {
-        // padding
-        text: "Padding",
-
-        arrowup: {
-          text: "Padding Top",
-
-          arrowup: () => {
-            sel
-              .reset()
-              .set.style(
-                "padding-top",
-                `${state.cssSettings.length.step}${state.cssSettings.length.unit}`
-              );
-
-            return `Increase top-side padding by ${state.cssSettings.length.step}${state.cssSettings.length.unit}.`;
-          },
-          arrowdown: () => {
-            sel
-              .reset()
-              .set.style(
-                "padding-top",
-                `-${state.cssSettings.length.step}${state.cssSettings.length.unit}`
-              );
-
-            return `Decrease top-side padding by ${state.cssSettings.length.step}${state.cssSettings.length.unit}.`;
-          },
-        },
-      },
-
-      f: {
-        // font-weight
-        text: "Font Weight",
-        w: {
+        f: {
+          // font-weight
           text: "Font Weight",
-          arrowup: () => {
-            let { unit, step } = state.cssSettings.weight;
-            step = Math.abs(step);
+          w: {
+            text: "Font Weight",
+            arrowup: () => {
+              let { unit, step } = state.cssSettings.weight;
+              step = Math.abs(step);
 
-            for (const element of getSelection()) {
-              const computedStyle = window.getComputedStyle(element);
-              const fontWeight = parseInt(computedStyle.fontWeight);
+              for (const element of getSelection()) {
+                const computedStyle = window.getComputedStyle(element);
+                const fontWeight = parseInt(computedStyle.fontWeight);
 
-              elementSetInlineStyle(
-                element,
-                "font-weight",
-                `${fontWeight + step}`
-              );
-            }
+                elementSetInlineStyle(
+                  element,
+                  "font-weight",
+                  `${fontWeight + step}`
+                );
+              }
+            },
+            arrowdown: () => {
+              let { unit, step } = state.cssSettings.weight;
+              step = Math.abs(step);
+
+              for (const element of getSelection()) {
+                const computedStyle = window.getComputedStyle(element);
+                const fontWeight = parseInt(computedStyle.fontWeight);
+
+                elementSetInlineStyle(
+                  element,
+                  "font-weight",
+                  `${Math.max(100, fontWeight - step)}`
+                );
+              }
+            },
           },
-          arrowdown: () => {
-            let { unit, step } = state.cssSettings.weight;
-            step = Math.abs(step);
-
-            for (const element of getSelection()) {
-              const computedStyle = window.getComputedStyle(element);
-              const fontWeight = parseInt(computedStyle.fontWeight);
-
-              elementSetInlineStyle(
-                element,
-                "font-weight",
-                `${Math.max(100, fontWeight - step)}`
-              );
-            }
+          // font-style
+          s: {},
+          // font-size
+          z: {
+            arrowup: () => {},
           },
-        },
-        // font-style
-        s: {},
-        // font-size
-        z: {
-          arrowup: () => {},
         },
       },
     },
@@ -409,11 +416,7 @@ new (function () {
     return (
       state.preferences
         .find((item) => item.group === group)
-        .items.find((item) => item.name === name) || {
-        value: null,
-        type: null,
-        name: null,
-      }
+        .items.find((item) => item.name === name).value || null
     );
   }
 
@@ -427,6 +430,13 @@ new (function () {
     state.editorContainer.watch();
   }
 
+  /**
+   * Spawn a notification message on the screen inside the editor's notification container
+   * @param {'good' | 'bad' | 'info' | 'warn'} type - The type of notification
+   * @param {string} title - The title of the notification
+   * @param {string} message - The message of the notification
+   * @returns {HTMLElement} The notification element
+   */
   function notification({ type, title, message }) {
     const notifications = state.notifications;
 
@@ -451,7 +461,7 @@ new (function () {
   }
 
   function initConsole() {
-    for (const key of ["log", "error", "warn", "info"]) {
+    /*for (const key of ["log", "error", "warn", "info"]) {
       const originalMethod = console[key];
 
       console[key] = function (...args) {
@@ -473,7 +483,7 @@ new (function () {
 
         originalMethod(...args);
       };
-    }
+    }*/
   }
 
   function initPreferences() {
@@ -534,6 +544,9 @@ new (function () {
     initHotbar();
 
     state.chordContainer = chordContainer({ options: state.chords });
+    state.editorContainer.appendChild(state.chordContainer);
+
+    console.log(state.chordContainer);
   }
 
   function initHotbar() {
@@ -544,6 +557,7 @@ new (function () {
           outerHTML: "<div>Hello, World!</div>",
           editor,
         }),
+        editor,
       }),
       hotbarSlot({
         key: "2",
@@ -551,6 +565,7 @@ new (function () {
           outerHTML: "<p>Hello, World!</p>",
           editor,
         }),
+        editor,
       }),
       hotbarSlot({
         key: "3",
@@ -558,6 +573,7 @@ new (function () {
           outerHTML: "<h1>Hello, World!</h1>",
           editor,
         }),
+        editor,
       }),
       hotbarSlot({
         key: "4",
@@ -565,11 +581,13 @@ new (function () {
           outerHTML: "<h2>Hello, World!</h2>",
           editor,
         }),
+        editor,
       }),
     ];
 
     const hotbarContainer = hotbar({
       slots: defaultHotbarSlots,
+      editor,
     });
 
     state.hotbar = hotbarContainer;
@@ -670,6 +688,13 @@ new (function () {
 
       const target = e.target;
 
+      if (e.ctrlKey) {
+        sel.add.elements(target);
+      } else {
+        console.log(target);
+        sel.empty().add.elements(target);
+      }
+
       const items = [
         [
           {
@@ -717,7 +742,7 @@ new (function () {
                   parent.appendChild(element);
                 } else {
                   notification({
-                    type: "error",
+                    type: "bad",
                     title: "Error",
                     message: "Element has no parent",
                   });
@@ -883,6 +908,7 @@ new (function () {
       if (e.key === "Backspace" && chordKeys.length > 0) {
         let newChord = editor.state.chord.slice(0, -1);
         editor.state.chord = newChord;
+        removeLastChord();
       } else if (chordKeys.includes(e.key.toLowerCase())) {
         // If the current branch contains a key that matches the key pressed,
         let target = currentBranch[e.key.toLowerCase()];
@@ -916,13 +942,23 @@ new (function () {
           } else if (typeof target === "function") {
             const res = target();
             console.log(res);
-
             state.chord = [];
+
+            removeAllChords();
 
             return;
           }
+
+          addChord({
+            options: {
+              ...getCurrentChordBranch(),
+            },
+            key: e.key.toLowerCase(),
+          });
         } else {
+          removeAllChords();
           console.error("No target found");
+          state.chord = [];
         }
       } else if (chordKeys.includes("allowManual")) {
         if (e.key === " ") {
@@ -941,6 +977,7 @@ new (function () {
         }
       } else {
         console.error("No target found");
+        removeAllChords();
         state.chord = [];
       }
 
@@ -1794,6 +1831,15 @@ new (function () {
     }
   }
 
+  function insertAdjacentHTML({ htmlString = "" }) {
+    const selection = getSelection();
+    console.log(selection);
+    for (const element of selection) {
+      console.log(element);
+      element.insertAdjacentHTML("beforeend", htmlString);
+    }
+  }
+
   function getBoxDirection(element) {
     return window.getComputedStyle(element).flexDirection || "row";
   }
@@ -1936,6 +1982,7 @@ new (function () {
   this.promptInput = promptInput;
   this.promptQuerySelector = promptQuerySelector;
   this.animateElementUpdate = animateElementUpdate;
+  this.insertAdjacentHTML = insertAdjacentHTML;
   this.sel = sel;
 
   document.addEventListener("DOMContentLoaded", main);

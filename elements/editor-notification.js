@@ -55,9 +55,13 @@ export default function editorNotification({
 
   el.classList.add(`__wizzy-notification-${type}`);
 
+  /**
+   * This is set in the `notification` function inside the main module (/wizzy.js) immediately upon being appended to the DOM.
+   */
   el.tmr = null;
 
   el.querySelector(".__wizzy-close-button").addEventListener("click", () => {
+    clearTimeout(el.tmr);
     el.remove();
   });
 

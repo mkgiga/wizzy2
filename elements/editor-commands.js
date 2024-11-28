@@ -54,26 +54,19 @@ export function hotbar({ slots = [], showAddButton = false, editor }) {
     el.appendChild(slot);
   });
 
+  console.log("editor in hotbar():", editor);
+
   const addNewSlotElement = hotbarSlot({
     command: command({
-      action: () => {
-        const newCommand = command({
-          name: "New Command",
-          icon: "add",
-          description: "New command",
-          brief: "New command",
-          action: () => {
-            console.log("New command");
-          },
-        });
-      },
+      action: `<div>Command</div>`,
       name: "Add new slot",
       icon: "add",
       description: "Adds a new slot to the hotbar",
+      editor,
     }),
-    type: "html",
-    key: null,
   });
+
+  el.appendChild(addNewSlotElement);
 
   return el;
 }
@@ -85,10 +78,10 @@ export function hotbar({ slots = [], showAddButton = false, editor }) {
  * @param {String} options.key - The keyboard shortcut to trigger the command
  * @returns {HTMLElement} - The hotbar slot element
  */
-export function hotbarSlot({ command, key = "" }) {
+export function hotbarSlot({ command, key = "", editor }) {
   const el = html`
     <div class="__wizzy-hotbar-slot" key="${key}">
-      <span class="__wizzy-hotbar-slot-key"></span>
+      <span class="__wizzy-hotbar-slot-key">${key}</span>
 
       <style>
         @scope (.__wizzy-hotbar-slot) {
@@ -97,8 +90,6 @@ export function hotbarSlot({ command, key = "" }) {
               position: relative;
               display: flex;
               flex-direction: column;
-              width: 100%;
-              height: 100%;
               background: white;
               box-sizing: border-box;
               margin: 0;
@@ -110,22 +101,22 @@ export function hotbarSlot({ command, key = "" }) {
             .__wizzy-hotbar-slot-key {
               position: absolute;
               top: 0;
-              left: 0;
+              right: 0;
               width: 100%;
               height: 100%;
               padding: 0.5rem;
-              text-align: center;
+              text-align: start;
+              text-indent: 0.1rem;
               font-size: 1rem;
               font-family: monospace;
               color: black;
               pointer-events: none;
-
-              ::before {
-                content: attr(key);
-              }
+              z-index: 2;
+              padding: 0;
             }
 
             .__wizzy-command {
+              position: relative;
               display: flex;
               flex-direction: column;
               justify-content: center;
@@ -142,6 +133,7 @@ export function hotbarSlot({ command, key = "" }) {
               transition: all 0.1s cubic-bezier(0.25, 0.1, 0.25, 1);
 
               .__wizzy-command-icon {
+                position: relative;
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
@@ -150,10 +142,6 @@ export function hotbarSlot({ command, key = "" }) {
                 height: 100%;
                 font-size: 2rem;
                 pointer-events: none;
-
-                &::before {
-                  content: attr(icon);
-                }
               }
 
               .__wizzy-command-name {
@@ -260,6 +248,7 @@ export function command({
   el.querySelector(".__wizzy-command-description").textContent = description;
 
   el.addEventListener("click", (e) => {
+    console.log(typeof action);
     if (typeof action === "function") {
       action.call(editor, e);
     } else if (typeof action === "string") {
@@ -400,6 +389,7 @@ export function insertHTMLSnippetCommand({ outerHTML = "", editor }) {
 
   const preview = html`${outerHTML}`;
   const outerTag = preview.tagName.toLowerCase();
+  console.log("editor in insertHTMLSnippetCommand():", editor);
 
   const cmd = command({
     name: "Insert HTML Snippet",

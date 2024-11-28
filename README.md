@@ -5,6 +5,7 @@ A visual power tool for rapid development of HTML/CSS user interfaces.
 ## Table of Contents
 
 - [Overview](#overview)
+- [Motivation](#motivation)
 - [Roadmap](#roadmap)
 - [Usage and Installation](#usage-and-installation)
   - [Installation](#1-installation)
@@ -12,9 +13,17 @@ A visual power tool for rapid development of HTML/CSS user interfaces.
 - [FAQ (Frequently Asked Questions)](#faq-frequently-asked-questions)
 - [License](#license)
 
-## Overview
+# Overview
 
-There are few tools available that succeed in providing a fast and intuitive way to create and iterate on web interfaces. In the past, tools like Adobe Dreamweaver and Microsoft Frontpage have tried to provide a visual interface for web development -- These tools often go out of their way to accommodate both developers and non-developers alike, and as a result, their interfaces are often described as cluttered and may overload the user with too many options, creating a sort of web-development equivalent to a DAW (Digital Audio Workstation) like FL Studio or Ableton Live. These tools are valuable in their field, but should not be the standard for a visual web development experience.
+Wizzy2 is a visual editor HTML/CSS webpages that allows for developers already familiar with HTML/CSS to rapidly prototype and design user interfaces that can be exported and used in any web project.
+
+## Motivation
+
+There are few tools that allow you to visually edit pages in a way that is intuitive when simply writing it by hand is faster and easier. I aim to bridge that gap by accommodating the user that is already familiar with HTML/CSS instead of trying to abstract it away and make it more 'user-friendly'. A couple of examples of this may be:
+
+- Setting specific CSS properties by pressing keys in a specific sequence, i.e. `S -> M -> T -> A` to set the `margin-top` of an element to `auto`. or `S -> M -> T -> ↑ -> ↑ -> ↑ -> ↑ ... ` to increment the `margin-top` by some amount. These types of shortcuts are calld "chords" and are common in text editors like Vim or Emacs. `S` stands for style, `M` for margin, `T` for top, and so on.
+
+- Just editing the HTML directly in the page rather than using massive set of buttons and dropdowns to do the same thing. Now you're doing what you would normally do, except you get instant visual feedback.
 
 ## Roadmap
 

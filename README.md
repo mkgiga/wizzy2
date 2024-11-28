@@ -21,7 +21,7 @@ Wizzy2 is a visual editor HTML/CSS webpages that allows for developers already f
 
 There are few tools that allow you to visually edit pages in a way that is intuitive when simply writing it by hand is faster and easier. I aim to bridge that gap by accommodating the user that is already familiar with HTML/CSS instead of trying to abstract it away and make it more 'user-friendly'. A couple of examples of this may be:
 
-- Setting specific CSS properties by pressing keys in a specific sequence, i.e. `S -> M -> T -> A` to set the `margin-top` of an element to `auto`. or `S -> M -> T -> ↑ -> ↑ -> ↑ -> ↑ ... ` to increment the `margin-top` by some amount. These types of shortcuts are calld "chords" and are common in text editors like Vim or Emacs. `S` stands for style, `M` for margin, `T` for top, and so on.
+- Setting specific CSS properties by pressing keys in a specific sequence, i.e. `S M T A` to set the `margin-top` of an element to `auto`. or `S M T ↑ ↑ ↑ ↑ ... ` to increment the `margin-top` by some amount. These types of shortcuts are calld "chords" and are common in text editors like Vim or Emacs. `S` stands for style, `M` for margin, `T` for top, and so on.
 
 - Just editing the HTML directly in the page rather than using massive set of buttons and dropdowns to do the same thing. Now you're doing what you would normally do, except you get instant visual feedback.
 

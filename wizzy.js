@@ -127,9 +127,18 @@ new (function () {
     },
 
     /**
-     * This is where deleted elements live until the history no longer needs them
+     * This is where deleted elements live until the history no longer needs them.
+     * Since an element's state cannot be reserialized properly, we need to keep the
+     * actual element in memory until it's no longer needed.
      */
     shadowRealm: document.createElement("div"),
+
+    /**
+     * Refers to the key/name of the custom element that is currently selected for editing inside
+     * the custom elements window. This property will be referenced to determine which element should have its
+     * data overwritten when the user saves the changes.
+     */
+    currentlyEditingElement: null,
 
     project: {
       /**

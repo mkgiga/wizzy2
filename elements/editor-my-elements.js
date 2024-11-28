@@ -1,12 +1,18 @@
 import html from "../lib/html.js";
 import randomUUID from "../util/randomUUID.js";
 import editorWindow from "./editor-window.js";
+import codeEditor from "./editor-code-editor.js";
+
 /**
  * A menu for user-created HTML elements.
- * @param {*} param0
+ * @param {Object} options
+ * @param {{ [name: string]: { outerHtml: string, style: string, meta: Object } }} options.elements - A map of custom HTML elements.
+ * @param {HTMLElement} options.editor - A reference to the editor state.
+ * @returns {HTMLElement} The custom HTML elements menu.
  * @returns
  */
-export function myCustomHtmlElements({ entries = {}, editor }) {
+export function myCustomHtmlElements({ elements = {}, editor }) {
+
   if (!editor) {
     throw new Error("Editor reference must be passed to myCustomHtmlElements");
   }
@@ -29,14 +35,14 @@ export function myCustomHtmlElements({ entries = {}, editor }) {
           <div class="__wizzy-custom-elements-html-editor-top-bar">
 
           </div>
-          <textarea class="__wizzy-custom-elements-html-editor"></textarea>
+          
         </div>
         <hr class="__wizzy-custom-elements-separator">
         <div class="__wizzy-custom-elements-css-editor-container __wizzy-element-code-editor-container">
           <div class="__wizzy-custom-elements-html-editor-top-bar">
             
           </div>
-          <textarea class="__wizzy-custom-elements-css-editor"></textarea>
+          
         </div>
       </div>
       <div class="__wizzy-custom-elements-buttons">
@@ -81,7 +87,6 @@ export function myCustomHtmlElements({ entries = {}, editor }) {
   const saveButton = content.querySelector(".__wizzy-custom-elements-add");
   const cancelButton = content.querySelector(".__wizzy-custom-elements-cancel");
 
-
   // ##################### Event Listeners ########################## //
 
   addElementButton.addEventListener("click", (e) => {
@@ -103,6 +108,48 @@ export function myCustomHtmlElements({ entries = {}, editor }) {
   cancelButton.addEventListener("click", (e) => {
     // todo
   });
+
+  const htmlEditorContainer = content.querySelector(".__wizzy-custom-elements-html-editor-container");
+  const cssEditorContainer = content.querySelector(".__wizzy-custom-elements-css-editor-container");
+
+  function onChangeOrInput(e, whichEditor = 'html', elementName) {
+    
+  }
+
+  htmlEditorContainer.appendChild(
+    codeEditor({
+      text: "",
+      listeners: {
+        
+      }
+    })
+  );
+
+  cssEditorContainer.appendChild(
+    codeEditor({
+      text: "",
+      listeners: {
+
+      }
+    })
+  );
+
+  const list = content.querySelector(".__wizzy-custom-elements-list");
+
+  for (const [name, { outerHtml, style, meta }] of Object.entries(elements)) {
+    const li = html`
+      <li class="__wizzy-custom-elements-list-item">
+        <span class="__wizzy-custom-elements-list-item-name">${name}</span>
+      </li>
+    `;
+
+    li.addEventListener("click", (e) => {
+      htmlEditor.value = outerHtml;
+      cssEditor.value = style;
+    });
+
+    list.appendChild(li);
+  }
 
   const topMenuItems = [];
 
@@ -129,6 +176,7 @@ export function customHtmlElement({
     meta,
   }
 }
+
 
 export default {
   myCustomHtmlElements,

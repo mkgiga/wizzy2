@@ -9,6 +9,7 @@ export default function codeEditor({
   cssOverrides = {
     "textarea": "font-family: monospace; font-size: 1rem; width: 100%; height: 100%; padding: 1rem; box-sizing: border-box; border: none; outline: none;",
   },
+  attr = {},
   menuButtons = [],
 }) {
   const id = randomUUID();
@@ -34,6 +35,10 @@ export default function codeEditor({
       </style>
     </div>
   `;
+
+  for (const [prop, value] of Object.entries(attr)) {
+    el.setAttribute(prop, value);
+  }
 
   const textarea = el.querySelector("textarea");
 

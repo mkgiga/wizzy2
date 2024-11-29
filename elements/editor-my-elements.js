@@ -2,6 +2,7 @@ import html from "../lib/html.js";
 import randomUUID from "../util/randomUUID.js";
 import editorWindow from "./editor-window.js";
 import codeEditor from "./editor-code-editor.js";
+import resizeHandle from "./resize-handle.js";
 
 /**
  * A menu for user-created HTML elements.
@@ -37,7 +38,7 @@ export function myCustomHtmlElements({ elements = {}, editor }) {
           </div>
           
         </div>
-        <hr class="__wizzy-custom-elements-separator">
+
         <div class="__wizzy-custom-elements-css-editor-container __wizzy-element-code-editor-container">
           <div class="__wizzy-custom-elements-html-editor-top-bar">
             
@@ -52,37 +53,24 @@ export function myCustomHtmlElements({ elements = {}, editor }) {
     </div>
   `;
 
-  // Draggable separator that allows the user to resize the HTML and CSS editors.
-  const handle = content.querySelector(".__wizzy-custom-elements-separator");
-  let isDragging = false;
-
-  handle.addEventListener("mousedown", (e) => {
-    isDragging = true;
-  });
-
-  handle.addEventListener("mouseup", (e) => {
-    isDragging = false;
-  });
-
-  window.addEventListener("mousemove", (e) => {
-    const [mouseX, mouseY] = [e.clientX, e.clientY];
-
-    // both the css and html editor should share the same parent element
-    const rect = content
-      .querySelector(".__wizzy-custom-elements-html-editor-container")
-      .parentElement.getBoundingClientRect();
-
-    if (isDragging) {
-      // todo
-    }
-  });
-
   const addElementButton = content.querySelector(".__wizzy-custom-elements-add");
   const renameElementButton = content.querySelector(".__wizzy-custom-elements-rename");
   const deleteElementButton = content.querySelector(".__wizzy-custom-elements-delete");
+  
+  const elementEditors = content.querySelector(".__wizzy-custom-elements-editor");
+  const htmlEditor = content.querySelector(".__wizzy-custom-elements-html-editor-container");
+  const cssEditor = content.querySelector(".__wizzy-custom-elements-css-editor-container");
 
-  const htmlEditor = content.querySelector(".__wizzy-custom-elements-html-editor");
-  const cssEditor = content.querySelector(".__wizzy-custom-elements-css-editor");
+  const handle = resizeHandle({
+    container: elementEditors,
+    direction: "column",
+    onResize: (e) => {
+      console.log("Resized", e);
+    }
+  });
+
+  cssEditor.insertAdjacentElement("beforebegin", handle);
+
 
   const saveButton = content.querySelector(".__wizzy-custom-elements-add");
   const cancelButton = content.querySelector(".__wizzy-custom-elements-cancel");
@@ -160,7 +148,19 @@ export function myCustomHtmlElements({ elements = {}, editor }) {
     menuItems: topMenuItems,
   });
 
-  return el;
+  customElementsContainer.toggle = (state = undefined) => {
+    if (state === undefined) {
+      customElementsContainer.toggleAttribute("hidden");
+    } else {
+      if (!state) {
+        customElementsContainer.removeAttribute("hidden");
+      } else {
+        customElementsContainer.setAttribute("hidden", "");
+      }
+    }
+  }
+
+  return customElementsContainer;
 }
 
 export function customHtmlElement({

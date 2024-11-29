@@ -237,6 +237,15 @@
       text-align: right;
     }
   }
+
+  .__wizzy-window:has(.__wizzy-custom-elements) {
+    width: 90vw;
+    height: 90vh;
+    position: fixed;
+    place-self: center;
+    background: white;
+  }
+
   .__wizzy-custom-elements {
     display: grid;
     grid-template-areas:
@@ -284,31 +293,48 @@
 
     .__wizzy-custom-elements-editor {
       grid-area: b;
-      
+      display: flex;
+      position: relative;
+      flex-direction: column;
+      gap: 0.5rem;
+      min-height: 0;
+      max-height: 100%;
+      overflow-y: auto;
+      scrollbar-width: none;
+
       /* applies to both the html and css editors */
       .__wizzy-code-editor-top-menu {
-            
       }
 
       .__wizzy-element-code-editor-container {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+        flex: 1;
+        border: 1px solid #f1f1f1;
       }
 
       textarea {
-
+        &:not(:active) {
+          ::before {
+            content: attr(editor-name);
+            color: #ccc;
+            font-size: 0.875rem;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 0.25rem;
+            background: white;
+            z-index: 1000000005;
+          }
+        }
       }
 
       .__wizzy-custom-elements-html-editor {
-          
-          
       }
 
       .__wizzy-custom-elements-css-editor {
-          
       }
-
     }
 
     .__wizzy-custom-elements-buttons {
@@ -327,14 +353,7 @@
       }
     }
 
-    .__wizzy-custom-elements-separator {
-      width: 100%;
-      height: 1px;
-      min-height: 1px;
-      background: transparent;
-      border-top: 1px solid #ccc;
-      border-bottom: 1px solid #ccc;
-    }
+    
   }
 }
 

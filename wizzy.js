@@ -41,6 +41,7 @@ import {
 } from "./elements/editor-chords.js";
 import elementReference from "./elements/editor-element-reference.js";
 import editorNotification from "./elements/editor-notification.js";
+import { myCustomHtmlElements } from "./elements/editor-my-elements.js";
 
 /**
  * using new() with an IIFE to allow for a private stateful object instance
@@ -194,6 +195,8 @@ new (function () {
 
           a: () => {
             sel.reset().set.style("margin", "auto");
+
+            return "Auto";
           },
 
           s: {
@@ -224,6 +227,8 @@ new (function () {
                   "margin-top",
                   `${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`
                 );
+
+                return `Increment margin-top by ${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`;
             },
 
             arrowdown: () => {
@@ -233,35 +238,20 @@ new (function () {
                   "margin-top",
                   `-${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`
                 );
+
+                return `Decrement margin-top by ${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`;
             },
 
-            arrowleft: () => {
-              sel
-                .reset()
-                .set.style(
-                  "margin-top",
-                  `-${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`
-                );
-            },
+            a: () => {
+              sel.reset().set.style("margin-top", "auto");
 
-            arrowright: () => {
-              sel
-                .reset()
-                .set.style(
-                  "margin-top",
-                  `${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`
-                );
-            },
-
-            a: {
-              text: "Auto",
-              arrowup: () => {
-                sel.reset().set.style("margin-top", "auto");
-              },
+              return "Auto";
             },
 
             delete: () => {
-              sel.reset().set.style("margin-top", "");
+              sel.reset().remove.style("margin-top");
+
+              return "Remove";
             },
           },
         },
@@ -402,14 +392,26 @@ new (function () {
     },
 
     preferences: defaultPreferences,
+
+    /** @type {HTMLElement} */
     preferencesElement: editorPreferences(
       LOCALSTORAGE_TARGET_PREFERENCES,
       defaultPreferences
     ),
+
+    /** @type {HTMLElement} */
     editorContainer: editorContainer(),
+
+    /** @type {HTMLElement} */
     notifications: html` <div class="__wizzy-notifications"></div> `,
+
+    /** @type {HTMLElement} */
     chordContainer: null,
 
+    /** @type {HTMLElement} */
+    myCustomHtmlElements: null,
+
+    /** @type {HTMLElement} */
     mouseFollower: html`
       <span
         class="__wizzy-current-tool-mouse-follower material-icons"
@@ -615,6 +617,15 @@ new (function () {
 
     state.editorContainer.appendChild(hotbarContainer);
     state.editorContainer.appendChild(state.notifications);
+
+    state.myCustomHtmlElements = myCustomHtmlElements({
+      editor,
+      elements: state.project.htmlElements,
+    });
+
+    state.myCustomHtmlElements.setAttribute("hidden", "");
+
+    state.editorContainer.appendChild(state.myCustomHtmlElements);
   }
 
   /**
@@ -1025,7 +1036,7 @@ new (function () {
         // moving the selection
         if (e.key === "ArrowUp") {
           for (const element of getSelection()) {
-            const dir = window.getComputedStyle(element).direction;
+            
           }
         }
       }
@@ -1034,6 +1045,8 @@ new (function () {
       if (e.ctrlKey && e.shiftKey) {
         if (e.code === "KeyP") {
           state.preferencesElement.toggle();
+        } else if (e.code === "KeyE") {
+          state.myCustomHtmlElements.toggle();
         }
 
         return;
@@ -1429,16 +1442,42 @@ new (function () {
         return sel;
       },
       query: (querySelector) => {
-        const newSelection = document.querySelectorAll(querySelector);
+        return {
+          elements: () => {
+            for (const element of document.querySelectorAll(querySelector)) {
+              element.removeAttribute("__wizzy-selected");
+            }
 
-        for (const element of newSelection) {
-          element.removeAttribute("__wizzy-selected");
+            tempSelection = getSelection();
+
+            return sel;
+          },
+          style: (propertyOrProperties) => {
+            for (const element of getSelection()) {
+              if (typeof propertyOrProperties !== "string") {
+                for (const key in propertyOrProperties) {
+                  element.style.removeProperty(key);
+                }
+              } else {
+                element.style.removeProperty(propertyOrProperties);
+              }
+            }
+
+            return sel;
+          }
+        }
+      },
+      style: (propertyOrProperties) => {
+        if (typeof propertyOrProperties !== 'string') {
+
+        } else {
+          for (const element of getSelection()) {
+            element.style.removeProperty(propertyOrProperties);
+          }
         }
 
-        tempSelection = getSelection();
-
         return sel;
-      },
+      }
     },
 
     empty: () => {

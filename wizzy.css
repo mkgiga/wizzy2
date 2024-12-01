@@ -302,11 +302,60 @@
       overflow-y: auto;
       scrollbar-width: none;
 
-      /* applies to both the html and css editors */
-      .__wizzy-code-editor-top-menu {
+      .__wizzy-code-editor {
+        display: flex;
+        flex-direction: column;
+        padding: 0.5rem;
+        min-height: 0;
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        flex-grow: 1;
+        
+        textarea {
+          display: block;
+
+          padding: 0;
+          margin: 0;
+          height: 100%;
+          width: 100%;
+          border: none;
+          resize: none;
+          font-family: "IBM Plex Mono", monospace;
+          font-size: 1rem;
+          flex: 1;
+          scrollbar-width: thin;
+          scrollbar-color: #ccc #f1f1f1;
+          background: #f1f1f1;
+          
+  
+  
+          &:not(:active) {
+            ::before {
+              content: attr(editor-name);
+              color: #ccc;
+              font-size: 0.875rem;
+              position: absolute;
+              top: 0;
+              left: 0;
+              background: white;
+              z-index: 1000000005;
+            }
+          }
+        }
       }
 
-      .__wizzy-element-code-editor-container {
+      /* applies to both the html and css editors */
+      .__wizzy-code-editor-top-menu {
+        border-bottom: 1px solid #f1f1f1;
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .__wizzy-custom-elements-code-editor-container {
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
@@ -314,21 +363,7 @@
         border: 1px solid #f1f1f1;
       }
 
-      textarea {
-        &:not(:active) {
-          ::before {
-            content: attr(editor-name);
-            color: #ccc;
-            font-size: 0.875rem;
-            position: absolute;
-            top: 0;
-            left: 0;
-            padding: 0.25rem;
-            background: white;
-            z-index: 1000000005;
-          }
-        }
-      }
+      
 
       .__wizzy-custom-elements-html-editor {
       }
@@ -350,6 +385,8 @@
         background: f1f1f1;
         color: black;
         cursor: pointer;
+        text-align: center;
+        font-size: 0.75rem;
       }
     }
 

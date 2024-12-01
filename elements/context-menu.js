@@ -103,9 +103,119 @@ export default function contextMenu({
     item: "",
     group: "",
   },
+  meta = {},
 }) {
   const MINIMUM_WIDTH = 256;
   const ITEM_HEIGHT = 24;
+
+  function init() {
+    let style = document.querySelector("#__wizzy-context-menu-style");
+
+    if (!style) {
+      style = html`
+        <style id="__wizzy-context-menu-style">
+          :root {
+            @media (prefers-color-scheme: dark) {
+              --context-menu-background: #333;
+              --context-menu-color: #fff;
+              --context-menu-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+              --context-menu-item-hover: #444;
+              --context-menu-item-active: #555;
+              --context-menu-item-border: 1px solid #555;
+            }
+
+            @media (prefers-color-scheme: light) {
+              --context-menu-background: #fff;
+              --context-menu-color: #333;
+              --context-menu-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+              --context-menu-item-hover: #f1f1f1;
+              --context-menu-item-active: #e1e1e1;
+              --context-menu-item-border: 1px solid #e1e1e1;
+            }
+          }
+
+          .__context-menu {
+            
+            position: fixed;
+            display: flex;
+            flex-direction: column;
+            background: white;
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+            border: none;
+            padding: 0;
+            margin: 0;
+            z-index: 10000000007;
+
+            top: ${y}px;
+            left: ${x}px;
+
+            background: var(--context-menu-background);
+            color: var(--context-menu-color);
+
+            min-width: ${MINIMUM_WIDTH}px;
+
+            ${cssOverrides.menu}
+            
+
+            .__context-menu-item {
+              position: relative;
+              display: flex;
+              flex-direction: row;
+              justify-content: space-between;
+              align-items: center;
+              width: 100%;
+              min-width: ${MINIMUM_WIDTH}px;
+              height: ${ITEM_HEIGHT}px;
+              padding: 0 1rem;
+              box-sizing: border-box;
+              cursor: pointer;
+              user-select: none;
+
+              /* preventing the text from triggering the event listeners */
+
+              .__context-menu-item-label {
+                pointer-events: none;
+                user-select: none;
+              }
+
+              .__context-menu-submenu-icon {
+                pointer-events: none;
+                user-select: none;
+              }
+
+              &[disabled] {
+                .__context-menu-item-label {
+                  opacity: 0.5;
+                }
+
+                .__context-menu-submenu-icon {
+                  opacity: 0.5;
+                }
+
+                cursor: not-allowed
+              }
+
+              &:not([disabled]):hover {
+                background: var(--context-menu-item-hover);
+              }
+
+              ${cssOverrides.item}
+            }
+
+            .__context-menu-group {
+              &:not(:first-child) {
+                border-top: var(--context-menu-item-border);
+              }
+
+              ${cssOverrides.group}
+            }
+          }
+        </style>
+      `;
+
+      document.head.appendChild(style);
+    }
+  }
 
   /**
    * Utility function to create a HTML element from a string template
@@ -138,109 +248,7 @@ export default function contextMenu({
       // but we can turn off visibility to avoid flickering
     }
 
-    const menuElement = html`
-      <div class="__context-menu">
-        <style>
-          @scope (.__context-menu) {
-            :scope {
-              @media (prefers-color-scheme: dark) {
-                --context-menu-background: #333;
-                --context-menu-color: #fff;
-                --context-menu-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
-                --context-menu-item-hover: #444;
-                --context-menu-item-active: #555;
-                --context-menu-item-border: 1px solid #555;
-              }
-
-              @media (prefers-color-scheme: light) {
-                --context-menu-background: #fff;
-                --context-menu-color: #333;
-                --context-menu-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
-                --context-menu-item-hover: #f1f1f1;
-                --context-menu-item-active: #e1e1e1;
-                --context-menu-item-border: 1px solid #e1e1e1;
-              }
-
-              & {
-                position: fixed;
-                display: flex;
-                flex-direction: column;
-                background: white;
-                box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
-                border: none;
-                padding: 0;
-                margin: 0;
-                z-index: 10000000007;
-
-                top: ${y}px;
-                left: ${x}px;
-
-                background: var(--context-menu-background);
-                color: var(--context-menu-color);
-
-                min-width: ${MINIMUM_WIDTH}px;
-
-                ${cssOverrides.menu}
-              }
-
-              .__context-menu-item {
-
-                position: relative;
-                display: flex;
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: center;
-                width: 100%;
-                min-width: ${MINIMUM_WIDTH}px;
-                height: ${ITEM_HEIGHT}px;
-                padding: 0 1rem;
-                box-sizing: border-box;
-                cursor: pointer;
-                user-select: none;
-
-                /* preventing the text from triggering the event listeners */
-
-                .__context-menu-item-label {
-                  pointer-events: none;
-                  user-select: none;
-                }
-
-                .__context-menu-submenu-icon {
-                  pointer-events: none;
-                  user-select: none;
-                }
-
-                &[disabled] {
-                  .__context-menu-item-label {
-                    opacity: 0.5;
-                  }
-
-                  .__context-menu-submenu-icon {
-                    opacity: 0.5;
-                  }
-
-                  cursor: not-allowed
-                }
-
-                &:not([disabled]):hover {
-                  background: var(--context-menu-item-hover);
-                }
-
-                ${cssOverrides.item}
-              }
-
-              .__context-menu-group {
-                &:not(:first-child) {
-                  border-top: var(--context-menu-item-border);
-                }
-
-                ${cssOverrides.group}
-              }
-            }
-          }
-        </style>
-      </div>
-    `;
+    const menuElement = html` <div class="__context-menu"></div> `;
 
     if (!parent) {
       menuElement.setAttribute("role", "menu");
@@ -334,40 +342,50 @@ export default function contextMenu({
     parentMenu.appendChild(groupElement);
   }
 
+  /**
+   * Initialize the context menu styles if they haven't been added yet
+   */
+  init();
+
   const menu = createMenu({ items, x, y });
+
+  menu.meta = meta;
+
+  menu.show = ({ x = 0, y = 0, zIndex = null }) => {
+    if (zIndex) {
+      menu.style.zIndex = zIndex;
+    }
+
+    menu.style.top = `${y}px`;
+    menu.style.left = `${x}px`;
+    menu.style.display = "flex";
+  };
+
+  /**
+   * Ensures that the menu is not rendered off-screen
+   * by snapping it to the nearest edge if it is too close on both axes
+   */
+  menu.correctPosition = () => {
+    const rect = menu.getBoundingClientRect();
+    const [vw, vh] = [window.innerWidth, window.innerHeight];
+
+    if (rect.right > vw) {
+      menu.style.left = `${vw - rect.width}px`;
+    }
+
+    if (rect.bottom > vh) {
+      menu.style.top = `${vh - rect.height}px`;
+    }
+
+    if (rect.left < 0) {
+      menu.style.left = "0";
+    }
+
+    if (rect.top < 0) {
+      menu.style.top = "0";
+    }
+  };
+
 
   return menu;
 }
-
-const exampleItemsArray = [
-  // an array signifies a group of items, which gets rendered with a separator
-  [
-    {
-      label: "Copy", // the text to display
-      value: (e) => {}, // the function to call when clicked
-    },
-    {
-      label: "Cut",
-      value: (e) => {},
-    },
-    {
-      label: "Paste",
-      value: (e) => {},
-    },
-  ],
-  {
-    label: "Settings...",
-    disabled: true, // if the item is disabled, it will not be clickable
-    value: [
-      // if the value is an object, it becomes a submenu, which has the same structure as the top level
-      {
-        label: "Font",
-        value: (e) => {},
-      },
-      {
-        label: "Theme",
-        value: (e) => {},
-      },
-    ],
-  },
-];

@@ -174,14 +174,84 @@ new (function () {
        *   [elementKey: string]: string
        * }}
        */
-      htmlElements: {
-
-      }
+      htmlElements: {},
     },
 
     // temporary internal selection array to allow for the querying methods to return the dictionary root and still
     // remember the selected elements of the previous query
     tempSelection: [],
+
+    /**
+     * VSCode-like command structure for the editor, separated by a delimiter
+     *   - Keys prepended with `@` are meta keys not meant to be part of the command
+     */
+    commands: {
+      editor: {
+        element: {
+          set: {
+            attribute: (element, key, value) => {
+              element.setAttribute(key, value);
+            },
+            style: {
+              manual: {
+                inline: {},
+
+                computed: {},
+              },
+            },
+          },
+          remove: {
+            attribute: (element, key) => {
+              element.removeAttribute(key);
+            },
+
+            style: (element, key) => {
+              element.style.removeProperty(key);
+            },
+          },
+          move: {
+            toParent: (element) => {
+            },
+            up: (element) => {
+            },
+            down: (element) => {
+            },
+            left: (element) => {
+            },
+            right: (element) => {
+            },
+          },
+
+        },
+        selection: {
+          add: {
+            element: (element) => {
+              sel.add.elements(element);
+            },
+          },
+          remove: {
+            element: (element) => {
+              sel.remove.elements(element);
+            },
+          },
+          clear: {
+            all: () => {
+              sel.empty();
+            },
+          },
+        },
+
+        history: {
+          undo: () => {
+            
+          },
+          redo: () => {
+            
+          },
+        },
+
+      },
+    },
 
     chord: [],
 
@@ -228,7 +298,7 @@ new (function () {
                   `${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`
                 );
 
-                return `Increment margin-top by ${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`;
+              return `Increment margin-top by ${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`;
             },
 
             arrowdown: () => {
@@ -239,7 +309,7 @@ new (function () {
                   `-${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`
                 );
 
-                return `Decrement margin-top by ${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`;
+              return `Decrement margin-top by ${state.project.cssSettings.length.step}${state.project.cssSettings.length.unit}`;
             },
 
             a: () => {
@@ -700,7 +770,6 @@ new (function () {
         } else {
           // testing
           console.log(selected.tagName);
-          debugger;
         }
 
         const rect = selected.getBoundingClientRect();
@@ -709,6 +778,17 @@ new (function () {
 
       requestAnimationFrame(animateOverlay);
     }
+
+    // we need to know which elements are in view at any given time
+    const intersectionObserver = new IntersectionObserver((entries) => {
+      return entries.filter((entry) => entry.isIntersecting);
+    });
+
+    intersectionObserver.observe(state.canvasOverlay);
+
+    state.canvasOverlay.getIntersetingElements = () => {
+      return intersectionObserver.takeRecords();
+    };
 
     state.editorContainer.appendChild(overlay);
 
@@ -741,7 +821,30 @@ new (function () {
         sel.empty().add.elements(target);
       }
 
+      // look for any element under the cursor that has a context menu attached to it
+      // get the first one,
+      const firstElementWithContextMenu = document.elementsFromPoint(
+        e.clientX,
+        e.clientY
+      ).find((element) => element.__wizzy_contextMenu) || null;
+
+      /**
+       * If a context menu has already been attached to the element, we should just display it
+       */
+      if (firstElementWithContextMenu) {
+        if (firstElementWithContextMenu.__wizzy_contextMenu.meta.override) {
+          // don't add its groups/items to the context menu,
+          // just display the context menu
+          firstElementWithContextMenu.__wizzy_contextMenu.show({ x: e.clientX, y: e.clientY });
+          return;
+        } else {
+          /** @todo: Implement appending groups of context items to the menu that appears on every element */
+        }
+      }
+
       const items = [
+        
+        // selection actions
         [
           {
             label: "Select",
@@ -756,13 +859,46 @@ new (function () {
             },
           },
           {
+            label: "Select parent",
+            value: () => {
+              selectElement(target.parentElement);
+            },
+            disabled: !target.parentElement,
+          }
+          
+        ],
+
+        // element-specific actions
+        [
+          {
             label: "Delete",
             value: () => {
               removeElement(target);
             },
           },
+
+          {
+            "Save preset": () => {
+              saveElementPreset(target);
+            },
+          }
         ],
+
+        // moving elements
+        [
+
+        ],
+
+        // styling elements
+        [
+
+        ]
       ];
+
+      const grpSelection = items[0];
+      const grpElement = items[1];
+      const grpMove = items[2];
+      const grpStyle = items[3];
 
       const everyElementHasParent = Array.from(getSelection()).reduce(
         (acc, element) => {
@@ -772,7 +908,8 @@ new (function () {
       );
 
       if (everyElementHasParent) {
-        items.push([
+
+        grpMove.push(
           {
             label: "Move to parent",
             value: () => {
@@ -798,7 +935,7 @@ new (function () {
               }
             },
           },
-        ]);
+        );
       }
 
       if (!isBlockElement(target)) {
@@ -923,13 +1060,8 @@ new (function () {
 
       // Don't block default behavior when the user is interacting with an input
       // Or the editor itself
-      if (
-        !(
-          document.activeElement.closest("[__wizzy-editor]") &&
-          document.activeElement.tagName === "INPUT"
-        )
-      ) {
-        e.preventDefault();
+      if (e.target.closest("[__wizzy-editor]") || e.target.closest("input")) {
+        return;
       } else {
         e.stopPropagation();
       }
@@ -1036,7 +1168,6 @@ new (function () {
         // moving the selection
         if (e.key === "ArrowUp") {
           for (const element of getSelection()) {
-            
           }
         }
       }
@@ -1083,12 +1214,37 @@ new (function () {
             );
 
             if (autoSelect) {
-              newChild.setAttribute("__wizzy-selected", "");
+              selectElement(newChild);
             } else {
-              newChild.removeAttribute("__wizzy-selected");
+              unselectElement(newChild);
             }
           }
         }
+      }
+
+      if (e.key === "Backspace") {
+        sel.goto.parent();
+      }
+
+      if (e.key === "Enter") {
+        // if the current selection has children, move to the first child
+        sel.goto.firstChild();
+      }
+
+      if (e.key === "ArrowUp") {
+        sel.goto.previous();
+      }
+
+      if (e.key === "ArrowDown") {
+        sel.goto.next();
+      }
+
+      if (e.key === "ArrowLeft") {
+        sel.goto.parent();
+      }
+
+      if (e.key === "ArrowRight") {
+        sel.goto.firstChild();
       }
 
       // Queryselector search bar
@@ -1146,7 +1302,7 @@ new (function () {
         }
 
         for (const element of getSelection()) {
-          element.removeAttribute("__wizzy-selected");
+          unselectElement(element);
         }
       }
 
@@ -1302,6 +1458,91 @@ new (function () {
 
   let tempSelection = state.tempSelection;
 
+  function onSelectionChange() {
+    // let's scroll to the last selected element
+    const selection = getSelection();
+
+    if (selection.length) {
+      const last = selection[selection.length - 1];
+      last.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }
+
+  /**
+   * Moves the selection in a specific direction, instead of by logical parent/child/neighbour relationships
+   * @param { "up" | "down" | "left" | "right" } dir
+   *
+   */
+  function moveSelectionDir(dir = "down") {
+    const allElements = document.querySelectorAll("*");
+    const visibleElements = allElements.filter((el) => el.checkVisibility());
+
+    /**
+     * For any individual element selection, try to move the selection in a specific direction
+     * @param {Element} selectedElement
+     * @param {string} dir
+     * @returns {boolean} Whether the selection was moved
+     */
+    function tryMoveElementSelection(
+      selectedElement = document.body,
+      dir = "down"
+    ) {
+      const v = { x: 0, y: 0 };
+      
+      switch (dir) {
+        case "up":
+          v.y = -1;
+          break;
+        case "down":
+          v.y = 1;
+          break;
+        case "left":
+          v.x = -1;
+          break;
+        case "right":
+          v.x = 1;
+          break;
+      }
+
+      // let's use the bounding rectangle of the element to determine the next element in the case where
+      // the direction is not a direct neighbor and the parent container's layout is complex
+
+      const rect = selectedElement.getBoundingClientRect();
+
+      // since any element can be anywhere due to CSS positioning,
+      // we have to iterate all visible elements
+
+      /**
+       * @type {IntersectionObserverEntry[]}
+       */
+      const intersectingElements = state.canvasOverlay.getIntersetingElements();
+
+      /**
+       * Returns in
+       * @param {DOMRect} rect1 The bounding rectangle of the first element
+       * @param {DOMRect} rect2 The bounding rectangle of the element to check
+       */
+      function getRectInfo(rect1, rect2) {
+        const v = { x: 0, y: 0, w: 0, h: 0, side: "bottom", distance: Infinity };
+        
+
+        
+
+      }
+
+      for (const entry of intersectingElements) {
+        const closestSide = getRectInfo(rect, entry.boundingClientRect);
+      }
+    }
+
+    for (const element of getSelection()) {
+      if (tryMoveElementSelection(element, dir)) {
+        onSelectionChange();
+        animateElementUpdate(element);
+      }
+    }
+  }
+
   /**
    * Quick way to modify or work with selected elements
    */
@@ -1311,6 +1552,111 @@ new (function () {
       tempSelection = getSelection();
 
       return sel;
+    },
+
+    goto: {
+      /** Go back to parent for the current selected element */
+      parent: () => {
+        for (const element of getSelection()) {
+          if (element.parentElement) {
+            unselectElement(element);
+            selectElement(element.parentElement);
+          } // if no parent, do nothing
+        }
+        return sel;
+      },
+
+      next: () => {
+        for (const element of getSelection()) {
+          const next = element.nextElementSibling;
+
+          if (next) {
+            unselectElement(element);
+            selectElement(next);
+
+            onSelectionChange();
+          }
+        }
+
+        return sel;
+      },
+
+      previous: () => {
+        for (const element of getSelection()) {
+          const previous = element.previousElementSibling;
+
+          if (previous) {
+            unselectElement(element);
+            selectElement(previous);
+
+            onSelectionChange();
+          }
+        }
+
+        return sel;
+      },
+
+      first: () => {
+        for (const element of getSelection()) {
+          const first = element.parentElement.firstElementChild;
+
+          if (first) {
+            unselectElement(element);
+            selectElement(first);
+
+            onSelectionChange();
+          }
+        }
+
+        return sel;
+      },
+
+      last: () => {
+        for (const element of getSelection()) {
+          const last = element.parentElement.lastElementChild;
+
+          if (last) {
+            unselectElement(element);
+            selectElement(last);
+
+            onSelectionChange();
+          }
+        }
+
+        return sel;
+      },
+
+      firstChild: () => {
+        for (const element of getSelection()) {
+          const firstChild = element.firstElementChild;
+
+          if (firstChild) {
+            selectElement(firstChild);
+            unselectElement(element);
+
+            onSelectionChange();
+          }
+        }
+
+        return sel;
+      },
+
+      // directional. this will require some more thought
+      up: () => {
+        moveSelectionDir("up");
+      },
+
+      down: () => {
+        moveSelectionDir("down");
+      },
+
+      left: () => {
+        moveSelectionDir("left");
+      },
+
+      right: () => {
+        moveSelectionDir("right");
+      },
     },
 
     set: {
@@ -1385,7 +1731,7 @@ new (function () {
     add: {
       elements: (...elements) => {
         for (const element of elements) {
-          element.setAttribute("__wizzy-selected", "");
+          selectElement(element);
         }
 
         tempSelection = getSelection();
@@ -1396,7 +1742,7 @@ new (function () {
         const newSelection = document.querySelectorAll(querySelector);
 
         for (const element of newSelection) {
-          element.setAttribute("__wizzy-selected", "");
+          selectElement(element);
         }
 
         tempSelection = getSelection();
@@ -1434,7 +1780,7 @@ new (function () {
     remove: {
       elements: (...elements) => {
         for (const element of elements) {
-          element.removeAttribute("__wizzy-selected");
+          unselectElement(element);
         }
 
         tempSelection = getSelection();
@@ -1445,7 +1791,7 @@ new (function () {
         return {
           elements: () => {
             for (const element of document.querySelectorAll(querySelector)) {
-              element.removeAttribute("__wizzy-selected");
+              unselectElement(element);
             }
 
             tempSelection = getSelection();
@@ -1464,12 +1810,11 @@ new (function () {
             }
 
             return sel;
-          }
-        }
+          },
+        };
       },
       style: (propertyOrProperties) => {
-        if (typeof propertyOrProperties !== 'string') {
-
+        if (typeof propertyOrProperties !== "string") {
         } else {
           for (const element of getSelection()) {
             element.style.removeProperty(propertyOrProperties);
@@ -1477,12 +1822,12 @@ new (function () {
         }
 
         return sel;
-      }
+      },
     },
 
     empty: () => {
       for (const element of document.querySelectorAll("[__wizzy-selected]")) {
-        element.removeAttribute("__wizzy-selected");
+        unselectElement(element);
       }
 
       tempSelection = getSelection();
@@ -1507,6 +1852,31 @@ new (function () {
       return sel;
     },
   };
+
+  function editorCommandSetStyleCommand(
+    target,
+    path = "editor.element.set.style.inline.margin.top",
+    key = "margin-top",
+    value = "10px"
+  ) {
+    const arr = path.split(".");
+
+    if (arr[4] === "inline") {
+      // <element style="margin-top: 10px;"></element>
+      elementSetInlineStyle(target, key, value);
+    } else {
+      // as a property (element.style.marginTop)
+      elementSetStyleProperty(target, key, value);
+    }
+
+    animateElementUpdate(target);
+  }
+
+  function elementSetStyleProperty(target, property, value) {
+    target.style.setProperty(property, value);
+
+    animateElementUpdate(target);
+  }
 
   function elementSetInlineStyle(target, property, value) {
     if (value === "") {
